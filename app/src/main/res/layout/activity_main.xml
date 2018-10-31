@@ -23,7 +23,9 @@
         android:id="@+id/surfaceview"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_gravity="top"/>
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="top" />
 
     <Button
         android:id="@+id/fboRecord_button"
@@ -45,6 +47,15 @@
         android:layout_alignBottom="@+id/fboRecord_button"
         android:layout_toEndOf="@+id/fboRecord_button"
         android:text="@string/toggleRecordingOff" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="176dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="97dp"
+        android:layout_marginBottom="71dp" />
 
 
 </RelativeLayout>
