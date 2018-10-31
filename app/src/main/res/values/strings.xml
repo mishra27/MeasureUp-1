@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <string name="app_name">HelloAR Java</string>
+    <string name="toggleRecordingOn"> Record </string>
+    <string name="toggleRecordingOff"> Record  </string>
+
+    toggleRecordingOff
+</resources>
