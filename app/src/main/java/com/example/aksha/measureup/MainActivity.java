@@ -54,7 +54,9 @@ import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -102,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private boolean last = false;
     private double distance;
     private String currentFileName;
+    private String tempFileName;
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -417,23 +420,34 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         // mRecorder = null;
         if (mRecorder == null || !mRecorder.isRecording()) {
             Log.d(TAG, "HERE");
-            currentFileName = "Object-" + Long.toHexString(System.currentTimeMillis()) + ".mp4";
-            File outputFile = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES) + "/MeasureUp",currentFileName);
-            File dir = outputFile.getParentFile();
+            currentFileName = "Object-" + Long.toHexString(System.currentTimeMillis());
+            File videoFile = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
+            File dir = videoFile.getParentFile();
             if (!dir.exists()) {
                 dir.mkdirs();
             }
 
             try {
-
                 mRecorder = new VideoRecorder(surfaceView.getWidth(),
                         surfaceView.getHeight(),
-                        VideoRecorder.DEFAULT_BITRATE, outputFile, this);
+                        VideoRecorder.DEFAULT_BITRATE, videoFile, this);
                 mRecorder.setEglConfig(mAndroidEGLConfig);
             } catch (IOException e) {
                 Log.e(TAG,"Exception starting recording", e);
             }
+        }else{
+            File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_distance.txt");
+
+            try {
+                PrintWriter out = new PrintWriter(distanceFile);
+                out.write(Double.toString(distance));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+
         }
         mRecorder.toggleRecording();
         updateControls();
