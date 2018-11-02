@@ -371,10 +371,18 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                 distance = Math.round(distance * 100.0) / 100.0;
                 result.setText("Distance Moved: " + Double.toString(distance * 100) + " cm");
                 last = false;
+
+                File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_distance.txt");
+
+                try {
+                    PrintWriter out = new PrintWriter(distanceFile);
+                    out.write(Double.toString(distance));
+                    out.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
-
-
-
             // Application is responsible for releasing the point cloud resources after
             // using it.
             pointCloud.release();
@@ -436,18 +444,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             } catch (IOException e) {
                 Log.e(TAG,"Exception starting recording", e);
             }
-        }else{
-            File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_distance.txt");
-
-            try {
-                PrintWriter out = new PrintWriter(distanceFile);
-                out.write(Double.toString(distance));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-
-
         }
         mRecorder.toggleRecording();
         updateControls();
