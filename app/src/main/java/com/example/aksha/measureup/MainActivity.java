@@ -436,21 +436,11 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     }
 
     private void updateControls() {
-        Button toggleRelease = findViewById(R.id.fboRecord_button);
-        int id = (mRecorder != null && mRecorder.isRecording()) ?
-                R.string.toggleRecordingOff : R.string.toggleRecordingOn;
-        toggleRelease.setText(id);
+        boolean recording = mRecorder != null && mRecorder.isRecording();
 
-        TextView tv =  findViewById(R.id.nowRecording_text);
-        if (id == R.string.toggleRecordingOff) {
-            count = 0;
-            tv.setText("Recording");
-        } else {
-            tv.setText(" Click ");
-
-
-
-        }
+        RecordButtonView recordButtonView = findViewById(R.id.recordButtonView);
+        recordButtonView.setRecording(recording);
+        recordButtonView.invalidate(); // redraw record button with updated state
     }
 }
 
