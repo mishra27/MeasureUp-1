@@ -205,8 +205,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
         surfaceView.onResume();
         displayRotationHelper.onResume();
-
-        messageSnackbarHelper.showMessage(this, "Searching for surfaces...");
     }
 
     @Override
