@@ -458,6 +458,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
         if (!recording) {
             firstTime = true;
+            result = findViewById(R.id.textView);
             result.setText("");
             last = true;
         }
