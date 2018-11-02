@@ -16,9 +16,6 @@
 
 package com.example.aksha.measureup;
 
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
@@ -98,12 +95,26 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     double currCameraX = 0.0;
     double currCameraY = 0.0;
     double currCameraZ = 0.0;
+    // Temporary matrix allocated here to reduce number of allocations for each frame.
+    private final float[] anchorMatrix = new float[16];
+    private static final float[] DEFAULT_COLOR = new float[] {0f, 0f, 0f, 0f};
+    private boolean firstTime = false;
+    private boolean last = false;
+    private double distance;
+    private String currentFileName;
 
-    boolean firstFrame = false;
-    int count = 0;
     // Anchors created from taps used for object placing with a given color.
+    private static class ColoredAnchor {
+        public final Anchor anchor;
+        public final float[] color;
 
+        public ColoredAnchor(Anchor a, float[] color4f) {
+            this.anchor = a;
+            this.color = color4f;
+        }
+    }
 
+    private final ArrayList<ColoredAnchor> anchors = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -261,13 +272,10 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         GLES20.glViewport(0, 0, width, height);
     }
 
-
-
     @Override
     public void onDrawFrame(GL10 gl) {
         // draw(gl);
-        //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
+        // GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         if (session == null) {
             return;
@@ -279,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
         try {
 
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+            //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
             session.setCameraTextureName(backgroundRenderer.getTextureId());
 
@@ -322,15 +330,12 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             PointCloud pointCloud = frame.acquirePointCloud();
             pointCloudRenderer.update(pointCloud);
 
+
             draw(frame,camera.getTrackingState() == TrackingState.PAUSED,
                     viewmtx, projmtx, camera.getDisplayOrientedPose(),lightIntensity);
 
-
-
             if (mRecorder!= null && mRecorder.isRecording()) {
                 VideoRecorder.CaptureContext ctx = mRecorder.startCapture();
-
-
                 if (ctx != null) {
                     // draw again
                     draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
@@ -341,27 +346,30 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
                 }
 
+                if(firstTime){
+                    initialCameraX = camera.getPose().tx();
+                    initialCameraY = camera.getPose().ty();
+                    initialCameraZ = camera.getPose().tz();
+                    Log.d(TAG, "initialCameraX " + initialCameraX);
+                    firstTime = false;
+                }
+
+            }
+
+            else if (mRecorder!= null && !mRecorder.isRecording() && last){
+
                 currCameraX = camera.getPose().tx();
                 currCameraY = camera.getPose().ty();
                 currCameraZ = camera.getPose().tz();
-
-                Log.d(TAG, "CameraX "+ currCameraX);
-
-                double distance = Math.sqrt(Math.pow((initialCameraX - currCameraX), 2) +
+                Log.d(TAG, "currCameraX " + currCameraX);
+                distance = Math.sqrt(Math.pow((initialCameraX - currCameraX), 2) +
                         Math.pow((initialCameraY - currCameraY), 2) +
                         Math.pow((initialCameraZ - currCameraZ), 2));
-
                 distance = Math.round(distance * 100.0) / 100.0;
-                result.setText(Double.toString(distance * 100));
+                result.setText("Distance Moved: " + Double.toString(distance * 100) + " cm");
+                last = false;
             }
 
-            else{
-
-                Log.d(TAG, "InitialCameraX "+ initialCameraX);
-                initialCameraX = camera.getPose().tx();
-                initialCameraY = camera.getPose().ty();
-                initialCameraZ = camera.getPose().tz();
-            }
 
 
             // Application is responsible for releasing the point cloud resources after
@@ -406,23 +414,19 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     public void clickToggleRecording(View view) {
         Log.d(TAG, "clickToggleRecording");
-
-
         // mRecorder = null;
         if (mRecorder == null || !mRecorder.isRecording()) {
-            result = findViewById(R.id.textView);
-            firstFrame = true;
-
             Log.d(TAG, "HERE");
+            currentFileName = "Object-" + Long.toHexString(System.currentTimeMillis()) + ".mp4";
             File outputFile = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES) + "/MeasureUp",
-                    "Object-" + Long.toHexString(System.currentTimeMillis()) + ".mp4");
+                    Environment.DIRECTORY_PICTURES) + "/MeasureUp",currentFileName);
             File dir = outputFile.getParentFile();
             if (!dir.exists()) {
                 dir.mkdirs();
             }
 
             try {
+
                 mRecorder = new VideoRecorder(surfaceView.getWidth(),
                         surfaceView.getHeight(),
                         VideoRecorder.DEFAULT_BITRATE, outputFile, this);
@@ -443,15 +447,30 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
         TextView tv =  findViewById(R.id.nowRecording_text);
         if (id == R.string.toggleRecordingOff) {
-            count = 0;
+            result = findViewById(R.id.textView);
+            result.setText("");
             tv.setText("Recording");
+            firstTime = true;
+            last = true;
         } else {
             tv.setText(" Click ");
-
-
-
         }
     }
+
+//    private void setFileName(String text) {
+//        currentFileName = videoURI.substring(videoURI.lastIndexOf("/"), videoURI.length());
+//        currentFileName = currentFileName.substring(1);
+//        Log.i("Current file name", currentFileName);
+//
+//        File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MeasureUp");
+//        File from      = new File(directory, currentFileName);
+//        File to        = new File(directory, text.trim() + ".mp4");
+//        from.renameTo(to);
+//        Log.i("Directory is", directory.toString());
+//        Log.i("Default path is", videoURI.toString());
+//        Log.i("From path is", from.toString());
+//        Log.i("To path is", to.toString());
+//    }
 }
 
 
