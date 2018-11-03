@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -91,20 +92,15 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private final PointCloudRenderer pointCloudRenderer = new PointCloudRenderer();
 
     private TextView result;
-    double initialCameraX = 0.0;
-    double initialCameraY = 0.0;
-    double initialCameraZ = 0.0;
-    double currCameraX = 0.0;
-    double currCameraY = 0.0;
-    double currCameraZ = 0.0;
+
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] anchorMatrix = new float[16];
     private static final float[] DEFAULT_COLOR = new float[] {0f, 0f, 0f, 0f};
     private boolean firstTime = false;
     private boolean last = false;
-    private double distance;
     private String currentFileName;
     private String tempFileName;
+    private double initial;
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -348,10 +344,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                 }
 
                 if(firstTime){
-                    initialCameraX = camera.getPose().tx();
-                    initialCameraY = camera.getPose().ty();
-                    initialCameraZ = camera.getPose().tz();
-                    Log.d(TAG, "initialCameraX " + initialCameraX);
+                    initial = getDistance(camera);
                     firstTime = false;
                 }
 
@@ -359,15 +352,10 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
             else if (mRecorder!= null && !mRecorder.isRecording() && last){
 
-                currCameraX = camera.getPose().tx();
-                currCameraY = camera.getPose().ty();
-                currCameraZ = camera.getPose().tz();
-                Log.d(TAG, "currCameraX " + currCameraX);
-                distance = Math.sqrt(Math.pow((initialCameraX - currCameraX), 2) +
-                        Math.pow((initialCameraY - currCameraY), 2) +
-                        Math.pow((initialCameraZ - currCameraZ), 2));
-                distance = Math.round(distance * 100.0) / 100.0;
-                result.setText("Distance Moved: " + Double.toString(distance * 100) + " cm");
+                //Log.d(TAG, "getDistance(camera) "+ getDistance(camera));
+                double distance = Math.abs(getDistance(camera) - initial);
+                result.setGravity(Gravity.CENTER);
+                result.setText("Distance Moved " + Double.toString(distance ) + " cm");
                 last = false;
 
                 File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
@@ -380,11 +368,13 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+
+               // session.update();
             }
+
             // Application is responsible for releasing the point cloud resources after
             // using it.
             pointCloud.release();
-
 
         } catch (Throwable t) {
             // Avoid crashing the application due to unhandled exceptions.
@@ -392,6 +382,13 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         }
 
 
+    }
+
+    private double getDistance(Camera camera) {
+        float[] translation = camera.getPose().getTranslation();
+        return (Math.round((Math.sqrt(Math.pow((translation[0]), 2) +
+                Math.pow((translation[1]), 2) +
+                Math.pow((translation[2]), 2)))* 100.0) / 100.0)* 100;
     }
 
 
@@ -453,13 +450,14 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         RecordButtonView recordButtonView = findViewById(R.id.recordButtonView);
         recordButtonView.setRecording(recording);
         recordButtonView.invalidate(); // redraw record button with updated state
+        result = findViewById(R.id.textView);
+        result.setText("");
 
         if (!recording) {
-            firstTime = true;
-            result = findViewById(R.id.textView);
-            result.setText("");
-            last = true;
+           last = true;
         }
+        else
+            firstTime = true;
     }
 
 //    private void setFileName(String text) {
