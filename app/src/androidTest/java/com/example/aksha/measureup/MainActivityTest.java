@@ -29,7 +29,7 @@ public class MainActivityTest {
     }
 
     @Test
-    public void testIfDirectoryWritten() {
+    public void testIfDirectoryWrittenAfterRecord() {
         Matcher<View> recordView = withId(R.id.recordButtonView);
 
         // grab current amount of directories
