@@ -27,9 +27,7 @@ public class VideoRecorder {
     private CaptureContext mEncoderContext;
 
 
-    public VideoRecorder(int width, int height, int bitrate, File outputFile,
-                         MainActivity listener) throws IOException {
-        listener = listener;
+    public VideoRecorder(int width, int height, int bitrate, File outputFile) throws IOException {
         mEncoderCore = new VideoEncoderCore(width, height, bitrate, outputFile);
         mVideoRect = new Rect(0,0,width,height);
     }
