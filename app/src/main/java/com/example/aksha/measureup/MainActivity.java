@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3d model of the Android robot.
  */
-public class MainActivity extends AppCompatActivity implements RecordScreenFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements RecordScreenFragment.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener, GalleryFragment.OnFragmentInteractionListener {
     @Override
     public void onFragmentInteraction(Uri uri) {
 
