@@ -27,6 +27,13 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
+            <Spinner
+                android:id="@+id/spinner1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:layout_editor_absoluteX="8dp"
+                tools:layout_editor_absoluteY="185dp" />
+
             <ImageButton
                 android:id="@+id/imageButton"
                 style="@android:style/Widget.Holo.Light.ImageButton"
@@ -55,7 +62,7 @@
             app:layout_constraintStart_toStartOf="parent"
             tools:text="Distance Moved" />
 
-        <com.example.aksha.measureup.RecordButtonView
+        <com.example.aksha.videoRecorder.RecordButtonView
             android:id="@+id/recordButtonView"
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -64,6 +71,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.9" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

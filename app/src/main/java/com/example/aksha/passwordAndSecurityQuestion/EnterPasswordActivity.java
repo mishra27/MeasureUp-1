@@ -2,8 +2,6 @@ package com.example.aksha.passwordAndSecurityQuestion;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +11,9 @@ import android.widget.Toast;
 import com.example.aksha.measureup.MainActivity;
 import com.example.aksha.measureup.R;
 import com.example.common.helpers.TransparentNavigationHelper;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class EnterPasswordActivity extends AppCompatActivity {
 
@@ -60,11 +61,6 @@ public class EnterPasswordActivity extends AppCompatActivity {
 
             }
         });
-    }
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        TransparentNavigationHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
     }
 
     @Override

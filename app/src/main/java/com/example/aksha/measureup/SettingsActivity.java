@@ -3,8 +3,6 @@ package com.example.aksha.measureup;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +17,9 @@ import android.widget.Toast;
 import com.example.aksha.passwordAndSecurityQuestion.ChangePasswordActivity;
 import com.example.aksha.passwordAndSecurityQuestion.ChangeSecurityQuestionActivity;
 import com.example.aksha.passwordAndSecurityQuestion.CreatePasswordActivity;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class SettingsActivity extends AppCompatActivity {
 

@@ -1,6 +1,7 @@
 package com.example.aksha.measureup;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
@@ -19,12 +20,16 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.aksha.videoRecorder.RecordButtonView;
+import com.example.aksha.videoRecorder.VideoRecorder;
 import com.example.common.helpers.CameraPermissionHelper;
 import com.example.common.helpers.DisplayRotationHelper;
-import com.example.common.helpers.FullScreenHelper;
 import com.example.common.helpers.SnackbarHelper;
 import com.example.common.helpers.TapHelper;
 import com.example.common.rendering.BackgroundRenderer;
@@ -188,6 +193,47 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         view.findViewById(R.id.imageButton2).setOnClickListener(Navigation.createNavigateOnClickListener(R.id.action_recordScreenFragment_to_galleryFragment, null));
 
         installRequested = false;
+
+        //for drop down menu list
+        Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getContext(),
+                android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.pages)){
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                // this part is needed for hiding the original view
+                View view = super.getView(position, convertView, parent);
+                view.setVisibility(View.GONE);
+
+                return view;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setSelection(0);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long row_id) {
+                if(parent.getItemAtPosition(position).toString().equals("Gallery")) {
+                    Intent i = new Intent(RecordScreenFragment.this.getContext(), MainActivity.class);
+                    startActivity(i);
+                }
+
+                else if(parent.getItemAtPosition(position).toString().equals("Settings")) {
+                    Intent i = new Intent(RecordScreenFragment.this.getContext(), SettingsActivity.class);
+                    startActivity(i);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+                // TODO Auto-generated method stub
+
+            }
+
+        });
     }
 
     @Override
@@ -525,6 +571,10 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         }
         else
             firstTime = true;
+    }
+
+    public void OnClickGalleryButton(View view) {
+        // TODO
     }
 
     /**

@@ -2,8 +2,6 @@ package com.example.aksha.passwordAndSecurityQuestion;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -15,6 +13,9 @@ import android.widget.Toast;
 
 import com.example.aksha.measureup.R;
 import com.example.aksha.measureup.SettingsActivity;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class ChangePasswordActivity extends AppCompatActivity {
 
