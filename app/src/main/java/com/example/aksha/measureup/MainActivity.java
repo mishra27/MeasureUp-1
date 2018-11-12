@@ -26,7 +26,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +56,9 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -102,6 +108,16 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private String tempFileName;
     private double initial;
 
+    //drawer bar
+    private ListView mDrawerList;
+    private ArrayAdapter<String> mAdapter;
+
+    //OpenCv
+//    static {
+//        System.loadLibrary("opencv_java3");
+//    }
+//    private Mat img;
+
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
         public final Anchor anchor;
@@ -121,6 +137,10 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceview);
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
+
+        //OpenCv
+//        img = new Mat(0, 0, CvType.CV_8U);
+
 
         // Set up tap listener.
         tapHelper = new TapHelper(/*context=*/ this);
@@ -459,6 +479,29 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         else
             firstTime = true;
     }
+
+    // drawer
+    private void addDrawerItems() {
+        String[] osArray = { "Record", "Gallery", "Settings"};
+        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, osArray);
+        mDrawerList.setAdapter(mAdapter);
+
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(MainActivity.this, "Time for an upgrade!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // drawer button
+    private void drawerOnClikc (View view) {
+        // Set up the drawer
+        mDrawerList = (ListView)findViewById(R.id.navList);
+        addDrawerItems();
+
+    }
+
 
 //    private void setFileName(String text) {
 //        currentFileName = videoURI.substring(videoURI.lastIndexOf("/"), videoURI.length());
