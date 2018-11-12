@@ -1,4 +1,4 @@
-package com.example.aksha.password;
+package com.example.aksha.passwordAndSecurityQuestion;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

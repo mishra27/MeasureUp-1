@@ -1,4 +1,4 @@
-package com.example.aksha.password;
+package com.example.aksha.passwordAndSecurityQuestion;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,13 +9,12 @@ import android.os.Bundle;
 
 import com.example.aksha.measureup.MainActivity;
 import com.example.aksha.measureup.R;
-import com.example.aksha.password.CreatePasswordActivity;
-import com.example.aksha.password.EnterPasswordActivity;
 import com.example.common.helpers.TransparentNavigationHelper;
 
-public class SplashActivity extends AppCompatActivity {
+public class Config extends AppCompatActivity {
 
     String password, secure;
+    private String answer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,13 +26,14 @@ public class SplashActivity extends AppCompatActivity {
         SharedPreferences settings = getSharedPreferences("PREFS", 0);
         password = settings.getString("password", "");
         secure = settings.getString("secure", "");
+        answer = settings.getString("answer", "");
 
         Handler handler = new Handler();
 
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(secure.equals("later") || secure.equals("")){
+                if(secure.equals("later") || secure.equals("") || (answer.equals("") && !secure.equals("no") ) ){
                     // if password has not been initialized yet
                     Intent intent = new Intent(getApplicationContext(), SetupActivity.class);
                     startActivity(intent);
@@ -47,7 +47,7 @@ public class SplashActivity extends AppCompatActivity {
                     finish();
                 }
 
-                else if( password.equals("")){
+                else if( password.equals("") ){
                     // if password has not been initialized yet
                     Intent intent = new Intent(getApplicationContext(), CreatePasswordActivity.class);
                     startActivity(intent);

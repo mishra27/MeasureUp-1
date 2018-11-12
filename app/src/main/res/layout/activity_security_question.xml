@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_gravity="center"
-    tools:context="com.example.aksha.password.SecurityQuestionActivity">
+    tools:context="com.example.aksha.passwordAndSecurityQuestion.SecurityQuestionActivity">
 
     <TextView
         android:id="@+id/textView5"

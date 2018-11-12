@@ -1,4 +1,4 @@
-package com.example.aksha.password;
+package com.example.aksha.passwordAndSecurityQuestion;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.example.aksha.measureup.MainActivity;
 import com.example.aksha.measureup.R;
@@ -94,3 +93,4 @@ public class SetupActivity extends AppCompatActivity {
         TransparentNavigationHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
     }
 }
+

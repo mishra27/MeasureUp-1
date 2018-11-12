@@ -13,15 +13,12 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.aksha.password.ChangePasswordActivity;
-import com.example.aksha.password.ChangeSecurityQuestionActivity;
-import com.example.aksha.password.CreatePasswordActivity;
-import com.example.aksha.password.EnterPasswordActivity;
-import com.example.aksha.password.ForgotPasswordActivity;
+import com.example.aksha.passwordAndSecurityQuestion.ChangePasswordActivity;
+import com.example.aksha.passwordAndSecurityQuestion.ChangeSecurityQuestionActivity;
+import com.example.aksha.passwordAndSecurityQuestion.CreatePasswordActivity;
 
 public class SettingsActivity extends AppCompatActivity {
 

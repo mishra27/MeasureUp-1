@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.aksha.password.ChangeSecurityQuestionActivity">
+    tools:context="com.example.aksha.passwordAndSecurityQuestion.ChangeSecurityQuestionActivity">
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.aksha.password.ChangePasswordActivity"
+        tools:context="com.example.aksha.passwordAndSecurityQuestion.ChangePasswordActivity"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="50dp">
 

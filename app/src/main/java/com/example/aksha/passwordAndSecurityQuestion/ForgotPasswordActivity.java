@@ -1,4 +1,4 @@
-package com.example.aksha.password;
+package com.example.aksha.passwordAndSecurityQuestion;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,7 +11,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.aksha.measureup.MainActivity;
 import com.example.aksha.measureup.R;
 import com.example.common.helpers.TransparentNavigationHelper;
 
