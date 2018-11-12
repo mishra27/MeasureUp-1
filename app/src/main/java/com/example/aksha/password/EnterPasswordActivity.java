@@ -1,4 +1,4 @@
-package com.example.aksha.measureup;
+package com.example.aksha.password;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,10 +10,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.aksha.measureup.MainActivity;
+import com.example.aksha.measureup.R;
+
 public class EnterPasswordActivity extends AppCompatActivity {
 
     EditText editText;
-    Button button;
+    Button button, button2;
 
     String password;
     @Override
@@ -29,6 +32,7 @@ public class EnterPasswordActivity extends AppCompatActivity {
 
         editText = (EditText) findViewById(R.id.editText3);
         button = (Button) findViewById(R.id.button3);
+        button2 = (Button) findViewById(R.id.button6);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -42,6 +46,17 @@ public class EnterPasswordActivity extends AppCompatActivity {
                 } else{
                     Toast.makeText(EnterPasswordActivity.this,"Invalid password!", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                    Intent intent = new Intent(getApplicationContext(), ForgotPasswordActivity.class);
+                    startActivity(intent);
+                    finish();
+
             }
         });
     }

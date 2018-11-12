@@ -1,4 +1,4 @@
-package com.example.aksha.measureup;
+package com.example.aksha.password;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,11 +10,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.aksha.measureup.MainActivity;
+import com.example.aksha.measureup.R;
+
 public class CreatePasswordActivity extends AppCompatActivity {
 
     EditText editText1, editText2;
     Button button;
-
+    String question;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +31,10 @@ public class CreatePasswordActivity extends AppCompatActivity {
         editText1 = (EditText) findViewById(R.id.editText);
         editText2 = (EditText) findViewById(R.id.editText2);
         button = (Button) findViewById(R.id.button);
+
+        SharedPreferences settings = getSharedPreferences("PREFS", 0);
+        question = settings.getString("question", "");
+
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -46,11 +53,18 @@ public class CreatePasswordActivity extends AppCompatActivity {
                         editor.apply();
 
                         //enter the app
+                        if(question.equals("")){
+                            // if password has not been initialized yet
+                            Intent intent = new Intent(getApplicationContext(), SecurityQuestionActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
 
+                        else{
                             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                             startActivity(intent);
                             finish();
-
+                        }
                     }
 
                     else{

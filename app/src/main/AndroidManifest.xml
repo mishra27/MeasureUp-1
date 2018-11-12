@@ -25,9 +25,7 @@
             android:configChanges="orientation|screenSize"
             android:exported="true"
             android:screenOrientation="locked"
-            android:theme="@style/Theme.AppCompat.NoActionBar">
-
-        </activity>
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
 
         <meta-data
             android:name="com.google.ar.core"
@@ -36,15 +34,18 @@
         <activity
             android:name=".GalleryView"
             android:label="Gallery" />
-        <activity android:name=".CreatePasswordActivity" />
-        <activity android:name=".EnterPasswordActivity" />
-        <activity android:name=".SplashActivity">
+        <activity android:name="com.example.aksha.password.CreatePasswordActivity" />
+        <activity android:name="com.example.aksha.password.EnterPasswordActivity" />
+        <activity android:name="com.example.aksha.password.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.example.aksha.password.SecurityQuestionActivity" />
+        <activity android:name="com.example.aksha.password.ForgotPasswordActivity" />
+        <activity android:name="com.example.aksha.password.SetupActivity"></activity>
     </application>
 
 </manifest>
