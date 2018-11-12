@@ -26,17 +26,31 @@
             android:exported="true"
             android:screenOrientation="locked"
             android:theme="@style/Theme.AppCompat.NoActionBar">
+            android:screenOrientation="locked"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
+
+        <activity
+            android:name=".GalleryViewActivity"
+            android:label="Gallery" />
+        <activity android:name="com.example.aksha.passwordAndSecurityQuestion.CreatePasswordActivity" />
+        <activity android:name="com.example.aksha.passwordAndSecurityQuestion.EnterPasswordActivity" />
+        <activity android:name="com.example.aksha.passwordAndSecurityQuestion.Config">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <meta-data
-            android:name="com.google.ar.core"
-            android:value="required" />
-
+        <activity android:name="com.example.aksha.passwordAndSecurityQuestion.SecurityQuestionActivity" />
+        <activity android:name="com.example.aksha.passwordAndSecurityQuestion.ForgotPasswordActivity" />
+        <activity android:name="com.example.aksha.passwordAndSecurityQuestion.SetupActivity" />
+        <activity android:name=".SettingsActivity" />
+        <activity android:name="com.example.aksha.passwordAndSecurityQuestion.ChangePasswordActivity" />
+        <activity android:name="com.example.aksha.passwordAndSecurityQuestion.ChangeSecurityQuestionActivity"></activity>
     </application>
 
 </manifest>
