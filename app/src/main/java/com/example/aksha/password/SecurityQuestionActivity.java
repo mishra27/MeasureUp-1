@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.example.aksha.measureup.MainActivity;
 import com.example.aksha.measureup.R;
+import com.example.common.helpers.TransparentNavigationHelper;
 
 public class SecurityQuestionActivity extends AppCompatActivity {
 
@@ -50,5 +51,11 @@ public class SecurityQuestionActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        TransparentNavigationHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
     }
 }

@@ -5,4 +5,11 @@
     toggleRecordingOff
     <string name="button">Button</string>
     <string name="loading">loading...</string>
+    <string-array name='pages'>
+        <item> Home </item>
+        <item> Gallery </item>
+        <item> Settings </item>
+
+    </string-array>
+
 </resources>

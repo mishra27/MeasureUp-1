@@ -11,6 +11,7 @@ import com.example.aksha.measureup.MainActivity;
 import com.example.aksha.measureup.R;
 import com.example.aksha.password.CreatePasswordActivity;
 import com.example.aksha.password.EnterPasswordActivity;
+import com.example.common.helpers.TransparentNavigationHelper;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -61,4 +62,10 @@ public class SplashActivity extends AppCompatActivity {
             }
         }, 2000);
     }
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        TransparentNavigationHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
+    }
 }
+

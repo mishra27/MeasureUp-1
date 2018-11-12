@@ -1,4 +1,4 @@
-package com.example.aksha.measureup;
+package com.example.aksha.videoRecorder;
         import android.media.MediaCodec;
         import android.media.MediaCodecInfo;
         import android.media.MediaFormat;

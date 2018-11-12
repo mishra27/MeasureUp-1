@@ -1,4 +1,4 @@
-package com.example.aksha.measureup;
+package com.example.aksha.videoRecorder;
 
 import android.content.Context;
 import android.graphics.Canvas;

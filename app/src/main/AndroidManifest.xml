@@ -45,7 +45,8 @@
         </activity>
         <activity android:name="com.example.aksha.password.SecurityQuestionActivity" />
         <activity android:name="com.example.aksha.password.ForgotPasswordActivity" />
-        <activity android:name="com.example.aksha.password.SetupActivity"></activity>
+        <activity android:name="com.example.aksha.password.SetupActivity" />
+        <activity android:name=".SettingsActivity"></activity>
     </application>
 
 </manifest>

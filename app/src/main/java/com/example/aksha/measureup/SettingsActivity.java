@@ -15,9 +15,7 @@ import android.widget.Spinner;
 
 import com.example.common.helpers.TransparentNavigationHelper;
 
-import java.util.Arrays;
-
-public class GalleryView extends AppCompatActivity {
+public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,10 +29,10 @@ public class GalleryView extends AppCompatActivity {
         w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        setContentView(R.layout.activity_gallery_view);
+        setContentView(R.layout.activity_settings);
 
-        Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(GalleryView.this,
+        Spinner spinner = (Spinner) findViewById(R.id.spinner2);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(SettingsActivity.this,
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.pages)){
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -52,7 +50,7 @@ public class GalleryView extends AppCompatActivity {
         //creating the position of the language in spinner from arraylist
 
 
-        spinner.setSelection(1);
+        spinner.setSelection(2);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
@@ -64,8 +62,8 @@ public class GalleryView extends AppCompatActivity {
                     startActivity(i);
                 }
 
-                else if(parent.getItemAtPosition(position).toString().equals("Settings")) {
-                    Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
+                else if(parent.getItemAtPosition(position).toString().equals("Gallery")) {
+                    Intent i = new Intent(getApplicationContext(), GalleryView.class);
                     startActivity(i);
                 }
             }
@@ -78,7 +76,6 @@ public class GalleryView extends AppCompatActivity {
 
         });
     }
-
 
 
 }

@@ -30,9 +30,13 @@
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp">
 
-        <com.example.aksha.measureup.RecordButtonView
+        <com.example.aksha.videoRecorder.RecordButtonView
             android:id="@+id/recordButtonView"
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -56,16 +60,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <Button
-            android:id="@+id/button2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:onClick="OnClickGalleryButton"
-            android:text="@string/button"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:layout_editor_absoluteY="0dp" />
+        <Spinner
+            android:id="@+id/spinner1"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="26dp"
+            android:background="@drawable/menu"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
 
     </android.support.constraint.ConstraintLayout>
 

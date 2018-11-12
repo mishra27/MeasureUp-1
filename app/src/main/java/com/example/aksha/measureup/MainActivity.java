@@ -27,13 +27,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.aksha.videoRecorder.RecordButtonView;
+import com.example.aksha.videoRecorder.VideoRecorder;
 import com.example.common.helpers.CameraPermissionHelper;
 import com.example.common.helpers.DisplayRotationHelper;
-import com.example.common.helpers.FullScreenHelper;
+import com.example.common.helpers.TransparentNavigationHelper;
 import com.example.common.helpers.SnackbarHelper;
 import com.example.common.helpers.TapHelper;
 import com.example.common.rendering.BackgroundRenderer;
@@ -43,7 +48,6 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Frame;
-import com.google.ar.core.Plane;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
@@ -119,8 +123,10 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceview);
+
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
 
         // Set up tap listener.
@@ -135,6 +141,47 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         installRequested = false;
+
+        //for drop down menu list
+        Spinner spinner = (Spinner) findViewById(R.id.spinner1);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this,
+                android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.pages)){
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                // this part is needed for hiding the original view
+                View view = super.getView(position, convertView, parent);
+                view.setVisibility(View.GONE);
+
+                return view;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long row_id) {
+                if(parent.getItemAtPosition(position).toString().equals("Gallery")) {
+                    Intent i = new Intent(getApplicationContext(), GalleryView.class);
+                    startActivity(i);
+                }
+
+                else if(parent.getItemAtPosition(position).toString().equals("Settings")) {
+                    Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
+                    startActivity(i);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+                // TODO Auto-generated method stub
+
+            }
+
+        });
+
     }
 
     @Override
@@ -233,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        FullScreenHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
+        TransparentNavigationHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
     }
 
     @Override
