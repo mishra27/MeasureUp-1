@@ -1,5 +1,8 @@
 package com.example.aksha.measureup;
 
+import android.os.Environment;
+import android.util.Log;
+
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -37,9 +40,16 @@ public class VideoProcessor {
         feature_params.put("minDistance", 7.0);
         feature_params.put("blockSize", 7.0);
 
+        // constant path
+        String path = Environment.getExternalStoragePublicDirectory(
+        Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "Object-167090f711f" + "/output.avi";
 
+        System.out.print(path);
 
         video_ = new VideoCapture(); // path
+        if (!video_.open(path)) {
+            Log.e("error", "Could not open the video file1");
+        };
         numOfFrames_ = video_.get(Videoio.CAP_PROP_FRAME_COUNT);
         frameHeight_ = video_.get(Videoio.CAP_PROP_FRAME_HEIGHT);
         frameWidth_ = video_.get(Videoio.CAP_PROP_FRAME_WIDTH);

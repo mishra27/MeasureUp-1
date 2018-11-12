@@ -16,6 +16,8 @@
 
 package com.example.aksha.measureup;
 
+import android.graphics.Bitmap;
+import android.media.MediaMetadataRetriever;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
@@ -41,6 +43,11 @@ import com.example.common.helpers.TapHelper;
 import com.example.common.rendering.BackgroundRenderer;
 import com.example.common.rendering.PlaneRenderer;
 import com.example.common.rendering.PointCloudRenderer;
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.FFmpegLoadBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -59,11 +66,14 @@ import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationExceptio
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.Buffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -108,15 +118,18 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private String tempFileName;
     private double initial;
 
-    //drawer bar
-    private ListView mDrawerList;
-    private ArrayAdapter<String> mAdapter;
+    // ffmpeg;
+    FFmpeg ffmpeg;
+    File videoFile_;
+
 
     //OpenCv
 //    static {
 //        System.loadLibrary("opencv_java3");
 //    }
 //    private Mat img;
+
+    static {System.loadLibrary("opencv_java3");}
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -141,6 +154,12 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         //OpenCv
 //        img = new Mat(0, 0, CvType.CV_8U);
 
+        //ffmpeg
+        try {
+            loadFFmpegLibrary();
+        } catch (FFmpegNotSupportedException ex) {
+            ex.printStackTrace();
+        }
 
         // Set up tap listener.
         tapHelper = new TapHelper(/*context=*/ this);
@@ -444,8 +463,12 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         if (mRecorder == null || !mRecorder.isRecording()) {
             Log.d(TAG, "HERE");
             currentFileName = "Object-" + Long.toHexString(System.currentTimeMillis());
+//            File videoFile = new File(Environment.getExternalStoragePublicDirectory(
+//                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
             File videoFile = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
+                  Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video", "video.mp4");
+            String aPath = videoFile.getAbsolutePath();
+            videoFile_ = videoFile;
             File dir = videoFile.getParentFile();
             if (!dir.exists()) {
                 dir.mkdirs();
@@ -480,28 +503,114 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             firstTime = true;
     }
 
-    // drawer
-    private void addDrawerItems() {
-        String[] osArray = { "Record", "Gallery", "Settings"};
-        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, osArray);
-        mDrawerList.setAdapter(mAdapter);
+    // test video processor
+    public void onClickProcessor(View view) {
+        convertCommand();
+        VideoProcessor vp = new VideoProcessor();
+    }
 
-        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    public void loadFFmpegLibrary() throws FFmpegNotSupportedException {
+        if (ffmpeg == null) {
+            ffmpeg = FFmpeg.getInstance(this);
+
+            ffmpeg.loadBinary(new FFmpegLoadBinaryResponseHandler() {
+                @Override
+                public void onFailure() {
+                    Toast.makeText(getApplicationContext(), "Library fail to load", Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onSuccess() {
+                    Toast.makeText(getApplicationContext(), "Library loaded successfully", Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onStart() {
+
+                }
+
+                @Override
+                public void onFinish() {
+
+                }
+            });
+        }
+    }
+
+    public void convertCommand() {
+        String path = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video/";
+        String fileName = "video.mpg";
+        String cmd = new String();
+        //command[0] = "ffmpeg -i " + path + fileName + " -vcodec mjpeg -qscale 1 -an " + path + "output.avi";
+        cmd = "-y -i " + path + fileName + " " + " -vcodec mjpeg -qscale 1 -an " + path + "output.avi";
+        try {
+            String[] command = cmd.split(" ");
+            if (command.length != 0) {
+                executedCommand(command);
+            } else {
+                Toast.makeText(MainActivity.this, "sssss", Toast.LENGTH_LONG).show();
+            }
+        } catch (FFmpegCommandAlreadyRunningException ex) {
+            Toast.makeText(getApplicationContext(), "Faild", Toast.LENGTH_LONG).show();
+        }
+
+    }
+    public void executedCommand(final String[] command) throws FFmpegCommandAlreadyRunningException {
+        ffmpeg.execute(command, new ExecuteBinaryResponseHandler()
+        {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(MainActivity.this, "Time for an upgrade!", Toast.LENGTH_SHORT).show();
+            public void onFailure(String message) {
+                super.onFailure(message);
+            }
+
+            @Override
+            public void onFinish() {
+                super.onFinish();
+            }
+
+            @Override
+            public void onProgress(String message) {
+                super.onProgress(message);
+            }
+
+            @Override
+            public void onStart() {
+                super.onStart();
+            }
+
+            @Override
+            public void onSuccess(String message) {
+                super.onSuccess(message);
             }
         });
     }
 
-    // drawer button
-    private void drawerOnClikc (View view) {
-        // Set up the drawer
-        mDrawerList = (ListView)findViewById(R.id.navList);
-        addDrawerItems();
+    public void newProcessor(View view) {
+        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+        mmr.setDataSource(videoFile_.getAbsolutePath());
+        Bitmap firstFrame = mmr.getFrameAtTime(0);
+        int width = firstFrame.getWidth();
+        int height = firstFrame.getHeight();
+        int[] rawPixels = new int[width*height];
+        firstFrame.getPixels(rawPixels, 0, width, 0, 0, width, height);
+        int[] R = new int[rawPixels.length];
+        int[] G = new int[rawPixels.length];
+        int[] B = new int[rawPixels.length];
+        int[] graycale = new int[rawPixels.length];
+        for (int i=0; i<rawPixels.length; i++) {
+            R[i] = (rawPixels[i] >> 16) & 0xff;
+            G[i] = (rawPixels[i] >> 8) & 0xff;
+            B[i] = rawPixels[i] & 0xff;
+            graycale[i] = (R[i] + G[i] + B[i])/3;
+        }
 
+        String path = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp/";
+        Mat gray = new Mat(height, width, CvType.CV_32S);
+        gray.put(0, 0, graycale);
+        Imgcodecs.imwrite(path + "/gray.jpg", gray);
     }
-
 
 //    private void setFileName(String text) {
 //        currentFileName = videoURI.substring(videoURI.lastIndexOf("/"), videoURI.length());

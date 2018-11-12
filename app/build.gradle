@@ -37,4 +37,5 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:' + rootProject.runnerVersion
     androidTestImplementation 'androidx.test.espresso:espresso-core:' + rootProject.espressoVersion
     implementation project(':openCVLibrary343')
+    implementation 'com.writingminds:FFmpegAndroid:0.3.2'
 }

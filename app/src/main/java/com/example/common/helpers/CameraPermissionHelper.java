@@ -28,7 +28,8 @@ public final class CameraPermissionHelper {
   private static final int CAMERA_PERMISSION_CODE = 0;
   private static final String REQUIRED_PERMISSIONS[] = {
           Manifest.permission.CAMERA,
-          Manifest.permission.WRITE_EXTERNAL_STORAGE
+          Manifest.permission.WRITE_EXTERNAL_STORAGE,
+          Manifest.permission.READ_EXTERNAL_STORAGE
   };
   /** Check to see we have the necessary permissions for this app. */
   public static boolean hasCameraPermission(Activity activity) {
