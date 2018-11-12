@@ -158,13 +158,16 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
+        spinner.setSelection(0);
+
+
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long row_id) {
                 if(parent.getItemAtPosition(position).toString().equals("Gallery")) {
-                    Intent i = new Intent(getApplicationContext(), GalleryView.class);
+                    Intent i = new Intent(getApplicationContext(), GalleryViewActivity.class);
                     startActivity(i);
                 }
 
@@ -509,11 +512,15 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     }
 
     public void OnClickGalleryButton(View view) {
-        Intent i = new Intent(getApplicationContext(), GalleryView.class);
+        Intent i = new Intent(getApplicationContext(), GalleryViewActivity.class);
         startActivity(i);
 
     }
 
+    @Override
+    public void onBackPressed() {
+        // Do Here what ever you want do on back press;
+    }
 
 //    private void setFileName(String text) {
 //        currentFileName = videoURI.substring(videoURI.lastIndexOf("/"), videoURI.length());

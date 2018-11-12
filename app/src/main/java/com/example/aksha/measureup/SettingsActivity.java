@@ -1,6 +1,7 @@
 package com.example.aksha.measureup;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -11,11 +12,23 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
-import com.example.common.helpers.TransparentNavigationHelper;
+import com.example.aksha.password.ChangePasswordActivity;
+import com.example.aksha.password.ChangeSecurityQuestionActivity;
+import com.example.aksha.password.CreatePasswordActivity;
+import com.example.aksha.password.EnterPasswordActivity;
+import com.example.aksha.password.ForgotPasswordActivity;
 
 public class SettingsActivity extends AppCompatActivity {
+
+    Button buttonPassword, buttonQuestion;
+    private String secure;
+    private String question;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
 
                 else if(parent.getItemAtPosition(position).toString().equals("Gallery")) {
-                    Intent i = new Intent(getApplicationContext(), GalleryView.class);
+                    Intent i = new Intent(getApplicationContext(), GalleryViewActivity.class);
                     startActivity(i);
                 }
             }
@@ -75,6 +88,55 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
         });
+
+        buttonPassword = (Button) findViewById(R.id.button2);
+        buttonQuestion = (Button) findViewById(R.id.button10);
+
+        SharedPreferences settings = getSharedPreferences("PREFS", 0);
+        secure = settings.getString("secure", "");
+        question = settings.getString("question", "");
+
+
+
+        buttonPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if(secure.equals("yes")){
+                    Intent intent = new Intent(getApplicationContext(), ChangePasswordActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else{
+                    Intent intent = new Intent(getApplicationContext(), CreatePasswordActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+            }
+        });
+
+        buttonQuestion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if(question.equals("")){
+                    Toast.makeText(SettingsActivity.this,"Need to create password first!", Toast.LENGTH_SHORT).show();
+                } else{
+                    Intent intent = new Intent(getApplicationContext(), ChangeSecurityQuestionActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+
+
+            }
+        });
+
+
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Do Here what ever you want do on back press;
     }
 
 

@@ -32,7 +32,7 @@
             android:value="required" />
 
         <activity
-            android:name=".GalleryView"
+            android:name=".GalleryViewActivity"
             android:label="Gallery" />
         <activity android:name="com.example.aksha.password.CreatePasswordActivity" />
         <activity android:name="com.example.aksha.password.EnterPasswordActivity" />
@@ -46,7 +46,9 @@
         <activity android:name="com.example.aksha.password.SecurityQuestionActivity" />
         <activity android:name="com.example.aksha.password.ForgotPasswordActivity" />
         <activity android:name="com.example.aksha.password.SetupActivity" />
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".SettingsActivity" />
+        <activity android:name="com.example.aksha.password.ChangePasswordActivity" />
+        <activity android:name="com.example.aksha.password.ChangeSecurityQuestionActivity"></activity>
     </application>
 
 </manifest>

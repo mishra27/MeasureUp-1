@@ -13,11 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
-import com.example.common.helpers.TransparentNavigationHelper;
-
-import java.util.Arrays;
-
-public class GalleryView extends AppCompatActivity {
+public class GalleryViewActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +30,7 @@ public class GalleryView extends AppCompatActivity {
         setContentView(R.layout.activity_gallery_view);
 
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(GalleryView.this,
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(GalleryViewActivity.this,
                 android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.pages)){
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -79,6 +75,10 @@ public class GalleryView extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        // Do Here what ever you want do on back press;
+    }
 
 
 }

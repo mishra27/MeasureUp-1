@@ -6,6 +6,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -25,6 +27,11 @@ public class CreatePasswordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
+
+
+        Window w = this.getWindow();
+        w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
         setContentView(R.layout.activity_create_password);
 
@@ -51,6 +58,8 @@ public class CreatePasswordActivity extends AppCompatActivity {
                         SharedPreferences settings =  getSharedPreferences("PREFS", 0);
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString("password", text1);
+                        editor.putString("secure", "yes");
+
                         editor.apply();
 
                         //enter the app
@@ -80,8 +89,8 @@ public class CreatePasswordActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        TransparentNavigationHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
+    public void onBackPressed() {
+        // Do Here what ever you want do on back press;
     }
+
 }
