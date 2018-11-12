@@ -16,6 +16,7 @@
 
 package com.example.aksha.measureup;
 
+import android.content.Intent;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
@@ -70,10 +71,9 @@ import javax.microedition.khronos.opengles.GL10;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3d model of the Android robot.
  */
-public class MainActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
+public class MainActivity extends AppCompatActivity implements GLSurfaceView.Renderer{
+
     private static final String TAG = MainActivity.class.getSimpleName();
-
-
     // Rendering. The Renderers are created here, and initialized when the GL surface is created.
     private GLSurfaceView surfaceView;
     private VideoRecorder mRecorder;
@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private String currentFileName;
     private String tempFileName;
     private double initial;
+
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -459,6 +460,13 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         else
             firstTime = true;
     }
+
+    public void OnClickGalleryButton(View view) {
+        Intent i = new Intent(getApplicationContext(), GalleryView.class);
+        startActivity(i);
+
+    }
+
 
 //    private void setFileName(String text) {
 //        currentFileName = videoURI.substring(videoURI.lastIndexOf("/"), videoURI.length());
