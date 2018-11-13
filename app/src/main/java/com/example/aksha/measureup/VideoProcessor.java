@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.media.MediaMetadataRetriever.OPTION_CLOSEST;
+
 public class VideoProcessor {
     //
     private File videoFile_;
@@ -123,26 +125,28 @@ public class VideoProcessor {
     }
 
     public void grabFrames() {
-        frameGrabber(6, frames_, videoFile_);
+        frameGrabber(200000, frames_, videoFile_);
     }
 
-    public void frameGrabber(int step, ArrayList<Mat> frames, File videoFile) {
+    public void frameGrabber(long step, ArrayList<Mat> frames, File videoFile) {
 
         // grab the first frame info to construct Mat
         Bitmap firstFrame = mmr_.getFrameAtTime(0);
         int width = firstFrame.getWidth();
         int height = firstFrame.getHeight();
 
-        String totalFrames = mmr_.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT);
+        String videoLength = mmr_.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+
+        long totalLength = Integer.valueOf(videoLength) * 1000;
 
         //long videoLengthUs = videoFile.length(); // TODO need to test the unit
         numOfFrame_ = 0;
 
-        Log.d("HERE video : ", String.valueOf(totalFrames));
+        Log.d("HERE video : ", String.valueOf(totalLength));
 
         // loop over to grab frame every timeLapseUs
 
-        for (int tl=0; tl<123435; tl=tl+step) {
+        for (long tl=0; tl<totalLength; tl=tl+step) {
             Mat newFrame = new Mat(height, width, CvType.CV_32S);
             grabFrameAsMat(tl, newFrame, videoFile);
             frames.add(newFrame);
@@ -164,9 +168,9 @@ public class VideoProcessor {
 //        Imgcodecs.imwrite(path + "/gray.jpg", gray);
     }
 
-    public void grabFrameAsMat (int step, Mat frame, File videoFile) {
+    public void grabFrameAsMat (long step, Mat frame, File videoFile) {
 
-        Bitmap currentFrame = mmr_.getFrameAtIndex(step);
+        Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
         int width = currentFrame.getWidth();
         int height = currentFrame.getHeight();
         int[] rawPixels = new int[width*height];
