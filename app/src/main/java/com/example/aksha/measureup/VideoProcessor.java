@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.os.Environment;
 import android.util.Log;
-import android.view.View;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -19,8 +18,6 @@ import org.opencv.core.TermCriteria;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
-import org.opencv.videoio.VideoCapture;
-import org.opencv.videoio.Videoio;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,14 +34,14 @@ public class VideoProcessor {
 
     // params for lucas kanade optical flow
     private Map<String, String> lk_params = new HashMap<String, String>();
-    private TermCriteria tc_;
+    private TermCriteria tc_ = new TermCriteria(TermCriteria.COUNT+ TermCriteria.EPS, 10, 0.03);
     private Size winSize_;
     private int maxLevel_;
 
     // opencv files
     private double frameHeight_;
     private double frameWidth_;
-    private ArrayList<Mat> frames_;
+    private ArrayList<Mat> frames_ = new ArrayList<Mat>() ;
     private Mat firstFrame_;
     private Mat lastFrame_;
     private Point firstPoint_;
@@ -126,30 +123,37 @@ public class VideoProcessor {
     }
 
     public void grabFrames() {
-        frameGrabber(200000, frames_, videoFile_);
+        frameGrabber(6, frames_, videoFile_);
     }
 
-    public void frameGrabber(long timeLapseUs, ArrayList<Mat> frames, File videoFile) {
+    public void frameGrabber(int step, ArrayList<Mat> frames, File videoFile) {
 
         // grab the first frame info to construct Mat
         Bitmap firstFrame = mmr_.getFrameAtTime(0);
         int width = firstFrame.getWidth();
         int height = firstFrame.getHeight();
-        long videoLengthUs = videoFile.length(); // TODO need to test the unit
+
+        String totalFrames = mmr_.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT);
+
+        //long videoLengthUs = videoFile.length(); // TODO need to test the unit
         numOfFrame_ = 0;
 
+        Log.d("HERE video : ", String.valueOf(totalFrames));
+
         // loop over to grab frame every timeLapseUs
-        for (long tl=0; tl<videoLengthUs; tl=tl+timeLapseUs) {
+
+        for (int tl=0; tl<123435; tl=tl+step) {
             Mat newFrame = new Mat(height, width, CvType.CV_32S);
             grabFrameAsMat(tl, newFrame, videoFile);
             frames.add(newFrame);
             numOfFrame_++;
         }
         // setFirstFrame
-        firstFrame_ = frames_.get(0);
+        firstFrame_ = frames.get(0);
         saveFirstFrame();
         // setLastFrame
-        lastFrame_ =  frames_.get(frames.size()-1);
+        Log.d("HERE size : ", String.valueOf(frames.size()-1));
+        lastFrame_ =  frames.get(frames.size()-1);
         saveLastFrame();
 
 
@@ -160,9 +164,9 @@ public class VideoProcessor {
 //        Imgcodecs.imwrite(path + "/gray.jpg", gray);
     }
 
-    public void grabFrameAsMat (long timeStamp, Mat frame, File videoFile) {
+    public void grabFrameAsMat (int step, Mat frame, File videoFile) {
 
-        Bitmap currentFrame = mmr_.getFrameAtTime(timeStamp);
+        Bitmap currentFrame = mmr_.getFrameAtIndex(step);
         int width = currentFrame.getWidth();
         int height = currentFrame.getHeight();
         int[] rawPixels = new int[width*height];
