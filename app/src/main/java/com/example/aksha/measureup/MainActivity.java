@@ -118,17 +118,10 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private String tempFileName;
     private double initial;
 
-    // ffmpeg;
-    FFmpeg ffmpeg;
-    File videoFile_;
+    private File videoFile_;
 
 
-    //OpenCv
-//    static {
-//        System.loadLibrary("opencv_java3");
-//    }
-//    private Mat img;
-
+    //Load OpenCv native library
     static {System.loadLibrary("opencv_java3");}
 
     // Anchors created from taps used for object placing with a given color.
@@ -150,16 +143,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         setContentView(R.layout.activity_main);
         surfaceView = findViewById(R.id.surfaceview);
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
-
-        //OpenCv
-//        img = new Mat(0, 0, CvType.CV_8U);
-
-        //ffmpeg
-        try {
-            loadFFmpegLibrary();
-        } catch (FFmpegNotSupportedException ex) {
-            ex.printStackTrace();
-        }
 
         // Set up tap listener.
         tapHelper = new TapHelper(/*context=*/ this);
@@ -503,114 +486,12 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             firstTime = true;
     }
 
-    // test video processor
     public void onClickProcessor(View view) {
-        convertCommand();
-        VideoProcessor vp = new VideoProcessor();
+        VideoProcessor vp = new VideoProcessor(videoFile_);
+        // will save first and last frame and grab all frames in ArrayList<Mat>
+        vp.grabFrames();
     }
 
-    public void loadFFmpegLibrary() throws FFmpegNotSupportedException {
-        if (ffmpeg == null) {
-            ffmpeg = FFmpeg.getInstance(this);
-
-            ffmpeg.loadBinary(new FFmpegLoadBinaryResponseHandler() {
-                @Override
-                public void onFailure() {
-                    Toast.makeText(getApplicationContext(), "Library fail to load", Toast.LENGTH_LONG).show();
-                }
-
-                @Override
-                public void onSuccess() {
-                    Toast.makeText(getApplicationContext(), "Library loaded successfully", Toast.LENGTH_LONG).show();
-                }
-
-                @Override
-                public void onStart() {
-
-                }
-
-                @Override
-                public void onFinish() {
-
-                }
-            });
-        }
-    }
-
-    public void convertCommand() {
-        String path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video/";
-        String fileName = "video.mpg";
-        String cmd = new String();
-        //command[0] = "ffmpeg -i " + path + fileName + " -vcodec mjpeg -qscale 1 -an " + path + "output.avi";
-        cmd = "-y -i " + path + fileName + " " + " -vcodec mjpeg -qscale 1 -an " + path + "output.avi";
-        try {
-            String[] command = cmd.split(" ");
-            if (command.length != 0) {
-                executedCommand(command);
-            } else {
-                Toast.makeText(MainActivity.this, "sssss", Toast.LENGTH_LONG).show();
-            }
-        } catch (FFmpegCommandAlreadyRunningException ex) {
-            Toast.makeText(getApplicationContext(), "Faild", Toast.LENGTH_LONG).show();
-        }
-
-    }
-    public void executedCommand(final String[] command) throws FFmpegCommandAlreadyRunningException {
-        ffmpeg.execute(command, new ExecuteBinaryResponseHandler()
-        {
-            @Override
-            public void onFailure(String message) {
-                super.onFailure(message);
-            }
-
-            @Override
-            public void onFinish() {
-                super.onFinish();
-            }
-
-            @Override
-            public void onProgress(String message) {
-                super.onProgress(message);
-            }
-
-            @Override
-            public void onStart() {
-                super.onStart();
-            }
-
-            @Override
-            public void onSuccess(String message) {
-                super.onSuccess(message);
-            }
-        });
-    }
-
-    public void newProcessor(View view) {
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        mmr.setDataSource(videoFile_.getAbsolutePath());
-        Bitmap firstFrame = mmr.getFrameAtTime(0);
-        int width = firstFrame.getWidth();
-        int height = firstFrame.getHeight();
-        int[] rawPixels = new int[width*height];
-        firstFrame.getPixels(rawPixels, 0, width, 0, 0, width, height);
-        int[] R = new int[rawPixels.length];
-        int[] G = new int[rawPixels.length];
-        int[] B = new int[rawPixels.length];
-        int[] graycale = new int[rawPixels.length];
-        for (int i=0; i<rawPixels.length; i++) {
-            R[i] = (rawPixels[i] >> 16) & 0xff;
-            G[i] = (rawPixels[i] >> 8) & 0xff;
-            B[i] = rawPixels[i] & 0xff;
-            graycale[i] = (R[i] + G[i] + B[i])/3;
-        }
-
-        String path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp/";
-        Mat gray = new Mat(height, width, CvType.CV_32S);
-        gray.put(0, 0, graycale);
-        Imgcodecs.imwrite(path + "/gray.jpg", gray);
-    }
 
 //    private void setFileName(String text) {
 //        currentFileName = videoURI.substring(videoURI.lastIndexOf("/"), videoURI.length());
