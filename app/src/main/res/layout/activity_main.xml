@@ -62,7 +62,7 @@
             android:id="@+id/button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="newProcessor"
+            android:onClick="onClickProcessor"
             android:text="Process"
             tools:layout_editor_absoluteX="20dp"
             tools:layout_editor_absoluteY="12dp" />

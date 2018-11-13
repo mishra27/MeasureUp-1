@@ -482,7 +482,9 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     }
 
     public void onClickProcessor(View view) {
-        VideoProcessor vp = new VideoProcessor(videoFile_);
+        File videoFile = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video", "video.mp4");
+        VideoProcessor vp = new VideoProcessor(videoFile);
         // will save first and last frame and grab all frames in ArrayList<Mat>
         vp.grabFrames();
     }
