@@ -461,7 +461,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
         RecordButtonView recordButtonView = this.getView().findViewById(R.id.recordButtonView);
         recordButtonView.setRecording(recording);
-        recordButtonView.invalidate(); // redraw record button with updated state
         result = this.getView().findViewById(R.id.textView);
         result.setText("");
 
