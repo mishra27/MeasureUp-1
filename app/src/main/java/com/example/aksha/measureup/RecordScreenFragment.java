@@ -222,7 +222,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 }
 
                 else if(parent.getItemAtPosition(position).toString().equals("Settings")) {
-                    Intent i = new Intent(RecordScreenFragment.this.getContext(), SettingsActivity.class);
+                    Intent i = new Intent(RecordScreenFragment.this.getContext(), SettingsFragment.class);
                     startActivity(i);
                 }
             }

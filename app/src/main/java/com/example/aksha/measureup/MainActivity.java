@@ -1,7 +1,10 @@
 package com.example.aksha.measureup;
 
+import android.app.ActionBar;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.example.common.helpers.TransparentNavigationHelper;
 
@@ -12,13 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
  * ARCore API. The application will display any detected planes and will allow the user to tap on a
  * plane to place a 3d model of the Android robot.
  */
-public class MainActivity extends AppCompatActivity implements RecordScreenFragment.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener, GalleryFragment.OnFragmentInteractionListener {
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
-    }
-
+public class MainActivity extends AppCompatActivity implements RecordScreenFragment.OnFragmentInteractionListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,6 +26,11 @@ public class MainActivity extends AppCompatActivity implements RecordScreenFragm
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         TransparentNavigationHelper.setFullScreenOnWindowFocusChanged(this, hasFocus);
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }
 
