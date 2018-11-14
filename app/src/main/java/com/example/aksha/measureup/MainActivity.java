@@ -487,6 +487,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         VideoProcessor vp = new VideoProcessor(videoFile);
         // will save first and last frame and grab all frames in ArrayList<Mat>
         vp.grabFrames();
+        vp.trackOpticalFlow();
     }
 
 
