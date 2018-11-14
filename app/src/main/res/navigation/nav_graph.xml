@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/recordScreenFragment">
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.aksha.measureup.SettingsFragment"
+        android:label="fragment_settings"
+        tools:layout="@layout/fragment_settings" ></fragment>
+    <fragment
+        android:id="@+id/galleryFragment"
+        android:name="com.example.aksha.measureup.GalleryFragment"
+        android:label="fragment_gallery"
+        tools:layout="@layout/fragment_gallery" >
+        <action
+            android:id="@+id/action_galleryFragment_to_objectDetailsFragment"
+            app:destination="@id/objectDetailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/objectDetailsFragment"
+        android:name="com.example.aksha.measureup.ObjectDetailsFragment"
+        android:label="fragment_object_details"
+        tools:layout="@layout/fragment_object_details" />
+    <fragment
+        android:id="@+id/recordScreenFragment"
+        android:name="com.example.aksha.measureup.RecordScreenFragment"
+        android:label="fragment_record_screen"
+        tools:layout="@layout/fragment_record_screen" >
+        <action
+            android:id="@+id/action_recordScreenFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_recordScreenFragment_to_galleryFragment"
+            app:destination="@id/galleryFragment" />
+    </fragment>
+</navigation>
