@@ -27,17 +27,10 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <Spinner
-                android:id="@+id/spinner1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:layout_editor_absoluteX="8dp"
-                tools:layout_editor_absoluteY="185dp" />
-
             <ImageButton
                 android:id="@+id/imageButton"
                 style="@android:style/Widget.Holo.Light.ImageButton"
-                android:layout_width="match_parent"
+                android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:contentDescription="Settings"
                 android:src="@android:drawable/ic_menu_preferences" />
