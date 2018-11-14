@@ -68,6 +68,8 @@ public class VideoProcessor {
         firstFrame_ = new Mat();
         lastFrame_ = new Mat();
         firstPoint_ = new Point();
+        firstPoint_.x = 750;
+        firstPoint_.y = 817;
         secondPoint_ = new Point();
         initPts1_ = new MatOfPoint2f();
         initPts2_ = new MatOfPoint2f();
@@ -105,23 +107,55 @@ public class VideoProcessor {
         MatOfPoint2f nextPts;
         prevPts = initPts1_;
         nextPts = new MatOfPoint2f();
+        List<Point> initPF = initPts1_.toList();
+        double aveX = 0.0;
+        double aveY = 0.0;
+        for (int j=0; j<initPF.size(); j++) {
+            aveX = initPF.get(j).x + aveX;
+            aveY = initPF.get(j).y + aveY;
+        }
+        aveX = aveX/initPF.size();
+        aveY = aveY/initPF.size();
+        firstOutPoint_.x = aveX;
+        firstOutPoint_.y = aveY;
+        Log.d("THATX video : ", String.valueOf(aveX));
+        Log.d("THATY video : ", String.valueOf(aveY));
+
+
         for (int i=0; i<numOfFrame_-1; i++) {
             prevImg = frames_.get(i);
             nextImg = frames_.get(i+1);
             Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_);
-        }
-        List<Point> outPtsList = nextPts.toList();
 
-        double aveX = 0.0;
-        double aveY = 0.0;
-        for (int i=0; i<outPtsList.size()-1; i++) {
-            aveX = outPtsList.get(i).x + aveX;
-            aveY = outPtsList.get(i).y + aveY;
+            List<Point> outPtsList = nextPts.toList();
+
+            aveX = 0.0;
+            aveY = 0.0;
+            for (int j=0; j<outPtsList.size(); j++) {
+                aveX = outPtsList.get(j).x + aveX;
+                aveY = outPtsList.get(j).y + aveY;
+            }
+            aveX = aveX/outPtsList.size();
+            aveY = aveY/outPtsList.size();
+            firstOutPoint_.x = aveX;
+            firstOutPoint_.y = aveY;
+            Log.d("THATX video : ", String.valueOf(aveX));
+            Log.d("THATY video : ", String.valueOf(aveY));
+
+
         }
-        aveX = aveX/outPtsList.size();
-        aveY = aveY/outPtsList.size();
-        firstOutPoint_.x = aveX;
-        firstOutPoint_.y = aveY;
+//        List<Point> outPtsList = nextPts.toList();
+//
+//        double aveX = 0.0;
+//        double aveY = 0.0;
+//        for (int i=0; i<outPtsList.size()-1; i++) {
+//            aveX = outPtsList.get(i).x + aveX;
+//            aveY = outPtsList.get(i).y + aveY;
+//        }
+//        aveX = aveX/outPtsList.size();
+//        aveY = aveY/outPtsList.size();
+//        firstOutPoint_.x = aveX;
+//        firstOutPoint_.y = aveY;
     }
 
     public void grabFrames() {
@@ -146,19 +180,17 @@ public class VideoProcessor {
 
         // loop over to grab frame every timeLapseUs
 
-        for (long tl=0; tl<totalLength; tl=tl+step) {
-            Mat newFrame = new Mat(height, width, CvType.CV_32S);
-            grabFrameAsMat(tl, newFrame, videoFile);
+        for (long tl=0; tl<(totalLength - 5000); tl=tl+step) {
+            Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
+            grabFrameAsMat(tl, newFrame);
+            saveFrame(numOfFrame_, newFrame);
             frames.add(newFrame);
             numOfFrame_++;
         }
-        // setFirstFrame
         firstFrame_ = frames.get(0);
-        saveFirstFrame();
-        // setLastFrame
+        lastFrame_ = frames.get(frames.size()-1);
         Log.d("HERE size : ", String.valueOf(frames.size()-1));
-        lastFrame_ =  frames.get(frames.size()-1);
-        saveLastFrame();
+
 
 
 //        Mat gray = new Mat(height, width, CvType.CV_32S);
@@ -168,7 +200,7 @@ public class VideoProcessor {
 //        Imgcodecs.imwrite(path + "/gray.jpg", gray);
     }
 
-    public void grabFrameAsMat (long step, Mat frame, File videoFile) {
+    public void grabFrameAsMat (long step, Mat frame) {
 
         Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
         int width = currentFrame.getWidth();
@@ -185,14 +217,16 @@ public class VideoProcessor {
             B[i] = rawPixels[i] & 0xff;
             graycale[i] = (R[i] + G[i] + B[i])/3;
         }
-        frame.put(0, 0, graycale);
+        Mat U32gray = new Mat(height, width, CvType.CV_32S);
+        U32gray.put(0, 0, graycale);
+        U32gray.convertTo(frame, CvType.CV_8UC1);
 
     }
 
     public void findInitFeatures(Mat inputFrame, MatOfPoint corners, Point point, MatOfPoint2f initPts) {
         double x = point.x;
         double y = point.y;
-        Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_32S);
+        Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_8UC1, Scalar.all(0));
         Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255));
         Imgproc.goodFeaturesToTrack(inputFrame, corners, 10, 0.3, 7.0, mask);
         initPts.fromList(corners.toList());
@@ -215,16 +249,11 @@ public class VideoProcessor {
         return  lastFrame_;
     }
 
-    public void saveFirstFrame() {
+    public void saveFrame(int index, Mat frame) {
+        String fileIndex = String.valueOf(index);
         String path = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES) + "/MeasureUp/";
-        Imgcodecs.imwrite(path + "/first.jpg", firstFrame_);
-    }
-
-    public void saveLastFrame() {
-        String path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp/";
-        Imgcodecs.imwrite(path + "/last.jpg", lastFrame_);
+        Imgcodecs.imwrite(path + fileIndex + ".jpg", frame);
     }
 
 }
