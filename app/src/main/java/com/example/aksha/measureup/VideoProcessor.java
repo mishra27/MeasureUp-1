@@ -126,9 +126,15 @@ public class VideoProcessor {
             prevImg = frames_.get(i);
             nextImg = frames_.get(i+1);
             Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_);
-
             List<Point> outPtsList = nextPts.toList();
-
+            outPtsList.clear();
+            // select good points
+           int numOfOutPoints = status_.toList().size();
+           for (int k=0; k<numOfOutPoints; k++) {
+               if (status_.toList().get(k) == 1) {
+                   outPtsList.add(nextPts.toList().get(k));
+               }
+           }
             aveX = 0.0;
             aveY = 0.0;
             for (int j=0; j<outPtsList.size(); j++) {
@@ -141,6 +147,9 @@ public class VideoProcessor {
             firstOutPoint_.y = aveY;
             Log.d("THATX video : ", String.valueOf(aveX));
             Log.d("THATY video : ", String.valueOf(aveY));
+            Mat prev = frames_.get(i);
+            Imgproc.circle(prev, new Point(aveX, aveY), 20, new Scalar(0, 255, 0, 255));
+            saveFrame(i+100,prev );
 
 
         }
