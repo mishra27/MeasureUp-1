@@ -1,8 +1,8 @@
 package com.example.aksha.measureup;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
@@ -11,6 +11,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
@@ -20,6 +21,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -61,25 +64,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link RecordScreenFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link RecordScreenFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class RecordScreenFragment extends Fragment implements GLSurfaceView.Renderer {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
     private static final String TAG = MainActivity.class.getSimpleName();
 
 
@@ -111,8 +96,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     private String tempFileName;
     private double initial;
 
-    private OnFragmentInteractionListener mListener;
-
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
         public final Anchor anchor;
@@ -130,38 +113,19 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment RecordScreenFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static RecordScreenFragment newInstance(String param1, String param2) {
-        RecordScreenFragment fragment = new RecordScreenFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        ((AppCompatActivity) this.getActivity()).getSupportActionBar().hide();
         return inflater.inflate(R.layout.fragment_record_screen, container, false);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        ((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
     }
 
     @Override
@@ -193,47 +157,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         view.findViewById(R.id.imageButton2).setOnClickListener(Navigation.createNavigateOnClickListener(R.id.action_recordScreenFragment_to_galleryFragment, null));
 
         installRequested = false;
-
-        //for drop down menu list
-        Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getContext(),
-                android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.pages)){
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                // this part is needed for hiding the original view
-                View view = super.getView(position, convertView, parent);
-                view.setVisibility(View.GONE);
-
-                return view;
-            }
-        };
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-
-        spinner.setSelection(0);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view,
-                                       int position, long row_id) {
-                if(parent.getItemAtPosition(position).toString().equals("Gallery")) {
-                    Intent i = new Intent(RecordScreenFragment.this.getContext(), MainActivity.class);
-                    startActivity(i);
-                }
-
-                else if(parent.getItemAtPosition(position).toString().equals("Settings")) {
-                    Intent i = new Intent(RecordScreenFragment.this.getContext(), SettingsFragment.class);
-                    startActivity(i);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-                // TODO Auto-generated method stub
-
-            }
-
-        });
     }
 
     @Override
@@ -327,30 +250,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             }
             this.getActivity().finish();
         }
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
     }
 
     @Override
@@ -571,24 +470,5 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         }
         else
             firstTime = true;
-    }
-
-    public void OnClickGalleryButton(View view) {
-        // TODO
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
     }
 }
