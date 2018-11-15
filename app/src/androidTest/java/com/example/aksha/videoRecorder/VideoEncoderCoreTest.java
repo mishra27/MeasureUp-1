@@ -1,4 +1,4 @@
-package com.example.aksha.measureup;
+package com.example.aksha.videoRecorder;
 
 import org.junit.After;
 import org.junit.Before;
@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class MainActivityTest {
+public class VideoEncoderCoreTest {
 
     @Before
     public void setUp() throws Exception {
@@ -17,15 +17,14 @@ public class MainActivityTest {
     }
 
     @Test
-    public void onCreate() {
+    public void getInputSurface() {
     }
 
     @Test
-    public void onWindowFocusChanged() {
+    public void release() {
     }
 
     @Test
-    public void onSupportNavigateUp() {
+    public void drainEncoder() {
     }
-
 }

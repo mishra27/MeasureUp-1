@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class MainActivityTest {
+public class SettingsFragmentTest {
 
     @Before
     public void setUp() throws Exception {
@@ -17,15 +17,10 @@ public class MainActivityTest {
     }
 
     @Test
-    public void onCreate() {
+    public void onCreateView() {
     }
 
     @Test
-    public void onWindowFocusChanged() {
+    public void onViewCreated() {
     }
-
-    @Test
-    public void onSupportNavigateUp() {
-    }
-
 }
