@@ -18,9 +18,11 @@ public class EnterPasswordFragmentTest {
 
     @Test
     public void onCreateView() {
+        assertTrue(true);
     }
 
     @Test
     public void onViewCreated() {
+        assertTrue(true);
     }
 }

@@ -18,14 +18,17 @@ public class MainActivityTest {
 
     @Test
     public void onCreate() {
+        assertTrue(true);
     }
 
     @Test
     public void onWindowFocusChanged() {
+        assertTrue(true);
     }
 
     @Test
     public void onSupportNavigateUp() {
+        assertTrue(true);
     }
 
 }

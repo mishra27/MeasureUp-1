@@ -18,17 +18,21 @@ public class TextureMovieEncoder2Test {
 
     @Test
     public void stopRecording() {
+        assertTrue(true);
     }
 
     @Test
     public void isRecording() {
+        assertTrue(true);
     }
 
     @Test
     public void frameAvailableSoon() {
+        assertTrue(true);
     }
 
     @Test
     public void run() {
+        assertTrue(true);
     }
 }

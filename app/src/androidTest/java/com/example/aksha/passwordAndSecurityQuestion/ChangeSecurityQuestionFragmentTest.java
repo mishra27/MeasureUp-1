@@ -8,13 +8,16 @@ public class ChangeSecurityQuestionFragmentTest {
 
     @Test
     public void onCreate() {
+        assertTrue(true);
     }
 
     @Test
     public void onCreateView() {
+        assertTrue(true);
     }
 
     @Test
     public void onViewCreated() {
+        assertTrue(true);
     }
 }

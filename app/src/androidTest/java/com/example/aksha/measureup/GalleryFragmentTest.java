@@ -8,5 +8,6 @@ public class GalleryFragmentTest {
 
     @Test
     public void onCreateView() {
+        assertTrue(true);
     }
 }
