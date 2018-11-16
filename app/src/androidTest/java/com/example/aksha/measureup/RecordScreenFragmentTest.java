@@ -1,63 +1,85 @@
 package com.example.aksha.measureup;
 
+import android.os.Environment;
+import android.view.View;
+
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import java.io.File;
+
+import androidx.test.core.app.ActivityScenario;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
+
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static org.junit.Assert.*;
 
+@RunWith(AndroidJUnit4.class)
+@LargeTest
 public class RecordScreenFragmentTest {
 
     @Before
     public void setUp() throws Exception {
+        ActivityScenario.launch(MainActivity.class);
     }
 
     @After
     public void tearDown() throws Exception {
+
     }
 
     @Test
-    public void onCreateView() {
-    }
+    public void test() {
+        Matcher<View> recordView = withId(R.id.recordButtonView);
 
-    @Test
-    public void onDestroyView() {
-    }
+        // grab current amount of directories
+        File measureUpDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp");
+        int files = 0;
+        if (measureUpDir.exists()) {
+            if (measureUpDir.list() != null) {
+                files = measureUpDir.list().length;
+            }
+        }
 
-    @Test
-    public void onViewCreated() {
-    }
+        // click record button (start recording)
+        onView(recordView).perform(click());
 
-    @Test
-    public void onResume() {
-    }
+        // wait for app to record for 1s
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-    @Test
-    public void onPause() {
-    }
+        // stop recording
+        onView(recordView).perform(click());
 
-    @Test
-    public void onRequestPermissionsResult() {
-        assertTrue(true);
-    }
+        // wait for files to be written
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-    @Test
-    public void onSurfaceCreated() {
-        assertTrue(true);
-    }
+        // stop recording
+        onView(recordView).perform(click());
 
-    @Test
-    public void onSurfaceChanged() {
-        assertTrue(true);
-    }
+        // wait for files to be written
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-    @Test
-    public void onDrawFrame() {
-        assertTrue(true);
-    }
-
-    @Test
-    public void clickToggleRecording() {
-        assertTrue(true);
+        assertTrue(measureUpDir.list().length > files);
     }
 }
+
+
