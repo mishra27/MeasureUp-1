@@ -13,12 +13,16 @@ import androidx.fragment.app.Fragment;
 public class GalleryFragment extends Fragment {
     GridView gridView;
     public String[] items ={"Hello","I'm","a","cool","dude","!"};
+    private Integer[] images = {R.drawable.image1, R.drawable.image2, R.drawable.image3, R.drawable.image4};
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_gallery, container, false);
         gridView = (GridView)rootView.findViewById(R.id.gallery_grid_dynamic);
-        gridView.setAdapter(new GridAdapter(getActivity(), items));
+        gridView.setAdapter(new GridAdapter(getActivity(), items, images));
+
+
 
         return rootView;
     }

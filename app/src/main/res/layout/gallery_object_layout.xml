@@ -4,11 +4,12 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/Test1"
+    <ImageView
+        android:id="@+id/grid_item_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello, I am a TextView" />
+        android:orientation="vertical">
+    </ImageView>
 
     <TextView
         android:id="@+id/Test2"
