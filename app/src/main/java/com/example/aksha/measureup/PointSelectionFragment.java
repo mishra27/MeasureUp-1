@@ -3,16 +3,21 @@ package com.example.aksha.measureup;
 
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 
 public class PointSelectionFragment extends Fragment {
     private PointSelectorView point1;
     private PointSelectorView point2;
+    private Button measureButton;
 
     public PointSelectionFragment() {
         // Required empty public constructor
@@ -25,6 +30,16 @@ public class PointSelectionFragment extends Fragment {
 
         point1 = view.findViewById(R.id.pointSelectorView);
         point2 = view.findViewById(R.id.pointSelectorView2);
+        measureButton = view.findViewById(R.id.button12);
+
+        measureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO do something with the measure points
+
+                Navigation.findNavController(PointSelectionFragment.this.getView()).navigateUp();
+            }
+        });
 
         view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
