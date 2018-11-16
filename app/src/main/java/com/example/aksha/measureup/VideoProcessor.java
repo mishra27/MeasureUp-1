@@ -198,17 +198,7 @@ public class VideoProcessor {
     }
 
 
-    public  double measurement (double opticalFocalM, double ccdHeigthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
-        double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdHeigthM, frameHeight_);
-        Mat tranlationMatrix = new Mat(4, 3, CvType.CV_64F);
-        translationMatrix(tranlationMatrix, distanceM);
-        ArrayList<Point> outputPoint = new ArrayList<Point>();
-        double[] world1 = {0, 0, 0};
-        double[] world2 = {0, 0, 0};
-        measureRealXYZ(intrinsicFocal, tranlationMatrix, first2.get(0), first2.get(1), world1);
-        measureRealXYZ(intrinsicFocal, tranlationMatrix, last2.get(0), last2.get(1), world2);
-        return Math.abs(world1[2] - world2[2]);
-    }
+
 
     public void grabFrames() {
         frameGrabber(50000, frames_, videoFile_);
@@ -289,32 +279,42 @@ public class VideoProcessor {
         initPts.fromList(corners.toList());
     }
 
+    public  double measurement (double opticalFocalM, double ccdHeigthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
+        double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdHeigthM, frameHeight_);
+        Mat translationMatrix = new Mat(3, 1, CvType.CV_64F);
+        translationMatrix(translationMatrix, distanceM);
+        ArrayList<Point> outputPoint = new ArrayList<Point>();
+        double[] world1 = new double[3];
+        double[] world2 = new double[3];
+        measureRealXYZ(intrinsicFocal, distanceM, first2.get(0), last2.get(0), world1);
+        measureRealXYZ(intrinsicFocal, distanceM, first2.get(1), last2.get(1), world2);
+        return Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2));
+    }
+
     public void translationMatrix (Mat matrix64F, double distanceM) {
-        Mat tm = new Mat(4, 3, CvType.CV_64F);
-        tm = matrix64F;
-        double[] row0 = {1.0, 0, 0, distanceM};
-        double[] row1 = {0, 1, 0, 0};
-        double[] row2 = {0, 0, 1, 0};
-        tm.put(0, 0, row0);
-        tm.put(1, 0, row1);
-        tm.put(2, 0, row2);
+        double[] row0 = new double[]{1, 0, 0, distanceM};
+        double[] row1 = new double[]{0, 1, 0, 0};
+        double[] row2 = new double[]{0, 0, 1, 0};
+        matrix64F.put(0, 0, row0);
+        matrix64F.put(1, 0, row1);
+        matrix64F.put(2, 0, row2);
     }
 
     public double intrinsicFocal (double opticalFocalM, double ccdHeightM, double imgHeight) {
         return opticalFocalM * imgHeight / ccdHeightM;
     }
 
-    public void measureRealXYZ(double intrinsicFocalM, Mat translationMatrix, Point imgXYL, Point imgXYR, double[] worldXYZ) {
+    public void measureRealXYZ(double intrinsicFocalM, double distanceM, Point imgXYL, Point imgXYR, double[] worldXYZ) {
         double z =
-                intrinsicFocalM * (intrinsicFocalM * translationMatrix.get(0, 3)[0])/
+                intrinsicFocalM * intrinsicFocalM * distanceM/
                         (imgXYR.x *
-                                (translationMatrix.get(2, 0)[0] * imgXYL.x +
-                                translationMatrix.get(2, 1)[0] * imgXYL.y +
-                                translationMatrix.get(2, 2)[0] * intrinsicFocalM) -
+                                (0 * imgXYL.x +
+                                0 * imgXYL.y +
+                                1 * intrinsicFocalM) -
                         intrinsicFocalM *
-                                (translationMatrix.get(0, 0)[0] * imgXYL.x +
-                                translationMatrix.get(0, 1)[0] * imgXYL.y) +
-                                translationMatrix.get(0, 2)[0] * intrinsicFocalM);
+                                (1 * imgXYL.x +
+                                0 * imgXYL.y +
+                                0 * intrinsicFocalM));
         double x = z * imgXYL.x / intrinsicFocalM;
         double y = z * imgXYL.y / intrinsicFocalM;
         worldXYZ[0] = x;
@@ -337,6 +337,20 @@ public class VideoProcessor {
 
     public Mat getLastFrame() {
         return  lastFrame_;
+    }
+
+    public ArrayList<Point> getInitPoints() {
+        ArrayList<Point> result = new ArrayList<Point>();
+        result.add(firstPoint_);
+        result.add(secondPoint_);
+        return result;
+    }
+
+    public ArrayList<Point> getFinalPoints() {
+        ArrayList<Point> result = new ArrayList<Point>();
+        result.add(firstOutPoint_);
+        result.add(secondOutPoint_);
+        return result;
     }
 
     public void saveFrame(int index, Mat frame) {

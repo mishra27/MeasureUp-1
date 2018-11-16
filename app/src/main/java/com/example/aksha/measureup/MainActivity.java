@@ -52,6 +52,8 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
+import org.opencv.core.Point;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -475,6 +477,13 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         // will save first and last frame and grab all frames in ArrayList<Mat>
         vp.grabFrames();
         vp.trackOpticalFlow();
+        ArrayList<Point> iniPoints = vp.getInitPoints();
+        ArrayList<Point> finalPoints = vp.getFinalPoints();
+        double oFM = 3.57 / 1000;
+        double ccdH = 5.23 / 1000;
+        double refDistance = 65.0 / 100;
+        double results = vp.measurement(oFM, ccdH, refDistance, iniPoints, finalPoints);
+        Log.d("results: ", String.valueOf(results));
     }
 
 
