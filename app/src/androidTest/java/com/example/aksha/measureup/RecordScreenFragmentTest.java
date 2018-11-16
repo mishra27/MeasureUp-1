@@ -29,11 +29,6 @@ public class RecordScreenFragmentTest {
         ActivityScenario.launch(MainActivity.class);
     }
 
-    @After
-    public void tearDown() throws Exception {
-
-    }
-
     @Test
     public void test() {
         Matcher<View> recordView = withId(R.id.recordButtonView);
@@ -54,16 +49,6 @@ public class RecordScreenFragmentTest {
         // wait for app to record for 1s
         try {
             Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // stop recording
-        onView(recordView).perform(click());
-
-        // wait for files to be written
-        try {
-            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

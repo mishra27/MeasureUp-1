@@ -3,14 +3,11 @@ package com.example.aksha.measureup;
 import android.view.View;
 
 import org.hamcrest.Matcher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 
 import androidx.test.core.app.ActivityScenario;
-
-import static org.junit.Assert.*;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -19,7 +16,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.isClickable;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-import static org.junit.Assert.assertTrue;
 
 
 public class MainActivityTest {
@@ -38,7 +34,6 @@ public class MainActivityTest {
         Matcher<View> settings = withId(R.id.imageButton);
 
         onView(settings).perform(click());
-        onView(withText("Gallery")).check(matches(isDisplayed()));
         onView(withText("Password")).check(matches(isDisplayed()));
         onView(withText("Security Question")).check(matches(isDisplayed()));
 
@@ -62,20 +57,5 @@ public class MainActivityTest {
 
         onView(gallery).perform(click());
         onView(withText("Gallery")).check(matches(isDisplayed()));
-
     }
-  /*  @Test
-    public void navigationChecker() {
-
-
-        Matcher<View> settings = withId(R.id.imageButton);
-        onView(settings).perform(click());
-
-    }
-
-    @Test
-    public void onSupportNavigateUp() {
-        assertTrue(true);
-    }
-*/
 }
