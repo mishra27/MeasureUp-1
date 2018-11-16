@@ -68,8 +68,8 @@ public class VideoProcessor {
         firstFrame_ = new Mat();
         lastFrame_ = new Mat();
         firstPoint_ = new Point();
-        firstPoint_.x = 750;
-        firstPoint_.y = 817;
+        firstPoint_.x = 441;
+        firstPoint_.y = 1266;
         secondPoint_ = new Point();
         initPts1_ = new MatOfPoint2f();
         initPts2_ = new MatOfPoint2f();
@@ -126,15 +126,18 @@ public class VideoProcessor {
             prevImg = frames_.get(i);
             nextImg = frames_.get(i+1);
             Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_);
-            List<Point> outPtsList = nextPts.toList();
+            List<Point> outPtsList = new ArrayList<>(nextPts.toList());
             outPtsList.clear();
             // select good points
            int numOfOutPoints = status_.toList().size();
+           MatOfPoint2f goodNew = new MatOfPoint2f();
            for (int k=0; k<numOfOutPoints; k++) {
                if (status_.toList().get(k) == 1) {
                    outPtsList.add(nextPts.toList().get(k));
                }
            }
+            goodNew.fromList(outPtsList);
+            prevPts = goodNew;
             aveX = 0.0;
             aveY = 0.0;
             for (int j=0; j<outPtsList.size(); j++) {
@@ -168,7 +171,7 @@ public class VideoProcessor {
     }
 
     public void grabFrames() {
-        frameGrabber(200000, frames_, videoFile_);
+        frameGrabber(50000, frames_, videoFile_);
     }
 
     public void frameGrabber(long step, ArrayList<Mat> frames, File videoFile) {
@@ -189,7 +192,7 @@ public class VideoProcessor {
 
         // loop over to grab frame every timeLapseUs
 
-        for (long tl=0; tl<(totalLength - 5000); tl=tl+step) {
+        for (long tl=0; tl<(totalLength - 34000); tl=tl+step) {
             Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
             grabFrameAsMat(tl, newFrame);
             saveFrame(numOfFrame_, newFrame);
@@ -236,8 +239,11 @@ public class VideoProcessor {
         double x = point.x;
         double y = point.y;
         Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255));
-        Imgproc.goodFeaturesToTrack(inputFrame, corners, 10, 0.3, 7.0, mask);
+        Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.goodFeaturesToTrack(inputFrame, corners, 10, 0.3, 7.0, mask, 7);
+        Mat cropped = new Mat();
+        inputFrame.copyTo(cropped, mask);
+        saveFrame(999, cropped);
         initPts.fromList(corners.toList());
     }
 
@@ -262,7 +268,7 @@ public class VideoProcessor {
         String fileIndex = String.valueOf(index);
         String currentFileName = "VideoObject-" + Long.toHexString(System.currentTimeMillis());
         String path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName);
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video";
         Imgcodecs.imwrite(path + fileIndex + ".jpg", frame);
     }
 

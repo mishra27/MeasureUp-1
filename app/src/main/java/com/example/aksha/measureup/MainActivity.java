@@ -16,8 +16,6 @@
 
 package com.example.aksha.measureup;
 
-import android.graphics.Bitmap;
-import android.media.MediaMetadataRetriever;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
@@ -28,10 +26,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +41,6 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Frame;
-import com.google.ar.core.Plane;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
@@ -59,16 +52,10 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.Buffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -444,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 //            File videoFile = new File(Environment.getExternalStoragePublicDirectory(
 //                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
             File videoFile = new File(Environment.getExternalStoragePublicDirectory(
-                  Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
+                  Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video", "video.mp4");
             String aPath = videoFile.getAbsolutePath();
             videoFile_ = videoFile;
             File dir = videoFile.getParentFile();
@@ -483,7 +470,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     public void onClickProcessor(View view) {
         File videoFile = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video", "video.mp4");
         VideoProcessor vp = new VideoProcessor(videoFile);
         // will save first and last frame and grab all frames in ArrayList<Mat>
         vp.grabFrames();
