@@ -44,6 +44,6 @@
     <fragment
         android:id="@+id/pointSelectionFragment"
         android:name="com.example.aksha.measureup.PointSelectionFragment"
-        android:label="fragment_point_selection"
+        android:label="Point Selection"
         tools:layout="@layout/fragment_point_selection" />
 </navigation>

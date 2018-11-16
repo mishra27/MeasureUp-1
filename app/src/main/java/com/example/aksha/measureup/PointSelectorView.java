@@ -1,6 +1,8 @@
 package com.example.aksha.measureup;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -13,6 +15,9 @@ public class PointSelectorView extends View {
     private int mActivePointerId = INVALID_POINTER_ID;
     private float initialTouchX = 0;
     private float initialTouchY = 0;
+
+    private Paint outlinePaint;
+    private Paint fillPaint;
 
     public PointSelectorView(Context context) {
         super(context);
@@ -30,7 +35,32 @@ public class PointSelectorView extends View {
     }
 
     private void init() {
-        this.setBackground(this.getContext().getDrawable(R.drawable.point_selector));
+        outlinePaint = new Paint();
+        outlinePaint.setAntiAlias(true);
+
+        outlinePaint.setARGB(255, 255, 255, 255);
+        outlinePaint.setStrokeWidth(2);
+        outlinePaint.setStyle(Paint.Style.STROKE);
+
+        fillPaint = new Paint();
+        fillPaint.setARGB(127, 0, 0, 0);
+        fillPaint.setStyle(Paint.Style.FILL);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        int height = getHeight();
+        int width = getWidth();
+        float radius = Math.min(width, height) / 2f;
+
+        canvas.drawCircle(width / 2, height / 2, radius - 2 * outlinePaint.getStrokeWidth(), fillPaint);
+        canvas.drawCircle(width / 2, height / 2, radius - 2 * outlinePaint.getStrokeWidth(), outlinePaint);
+
+        float crossSize = (radius - 1) / 2f;
+        canvas.drawLine(width / 2 - crossSize, height / 2, width / 2 + crossSize, height / 2, outlinePaint);
+        canvas.drawLine(width / 2, height / 2 - crossSize, width / 2, height / 2 + crossSize, outlinePaint);
     }
 
     @Override
