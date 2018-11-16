@@ -43,7 +43,7 @@ public class PointSelectorView extends View {
         outlinePaint.setStyle(Paint.Style.STROKE);
 
         fillPaint = new Paint();
-        fillPaint.setARGB(127, 0, 0, 0);
+        fillPaint.setARGB(63, 0, 0, 0);
         fillPaint.setStyle(Paint.Style.FILL);
     }
 
@@ -55,10 +55,10 @@ public class PointSelectorView extends View {
         int width = getWidth();
         float radius = Math.min(width, height) / 2f;
 
-        canvas.drawCircle(width / 2, height / 2, radius - 2 * outlinePaint.getStrokeWidth(), fillPaint);
-        canvas.drawCircle(width / 2, height / 2, radius - 2 * outlinePaint.getStrokeWidth(), outlinePaint);
+        canvas.drawCircle(width / 2, height / 2, radius - outlinePaint.getStrokeWidth() / 2, fillPaint);
+        canvas.drawCircle(width / 2, height / 2, radius - outlinePaint.getStrokeWidth() / 2, outlinePaint);
 
-        float crossSize = (radius - 1) / 2f;
+        float crossSize = (radius - outlinePaint.getStrokeWidth()) / 2f;
         canvas.drawLine(width / 2 - crossSize, height / 2, width / 2 + crossSize, height / 2, outlinePaint);
         canvas.drawLine(width / 2, height / 2 - crossSize, width / 2, height / 2 + crossSize, outlinePaint);
     }

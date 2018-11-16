@@ -8,23 +8,52 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 public class PointSelectionFragment extends Fragment {
-
+    private PointSelectorView point1;
+    private PointSelectorView point2;
 
     public PointSelectionFragment() {
         // Required empty public constructor
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_point_selection, container, false);
+        View view = inflater.inflate(R.layout.fragment_point_selection, container, false);
+
+        point1 = view.findViewById(R.id.pointSelectorView);
+        point2 = view.findViewById(R.id.pointSelectorView2);
+
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                View view = PointSelectionFragment.this.getView();
+
+                point1.setX(view.getWidth() / 4 - point1.getWidth() / 2);
+                point1.setY(view.getHeight() / 2 - point1.getHeight() / 2);
+
+                point2.setX(view.getWidth() * 3 / 4 - point1.getWidth() / 2);
+                point2.setY(view.getHeight() / 2 - point1.getHeight() / 2);
+
+                point1.invalidate();
+                point2.invalidate();
+            }
+        });
+
+        return view;
     }
 
+    public float[][] getMeasurePoints() {
+        float[][] points = new float[2][2];
+
+        points[0][0] = point1.getX();
+        points[0][1] = point1.getY();
+
+        points[1][0] = point2.getX();
+        points[1][1] = point2.getY();
+
+        return points;
+    }
 }
