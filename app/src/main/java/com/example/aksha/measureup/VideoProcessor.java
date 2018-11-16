@@ -149,7 +149,7 @@ public class VideoProcessor {
             Log.d("THATY video : ", String.valueOf(aveY));
             Mat prev = frames_.get(i);
             Imgproc.circle(prev, new Point(aveX, aveY), 20, new Scalar(0, 255, 0, 255));
-            saveFrame(i+100,prev );
+            saveFrame(i+100, prev );
 
 
         }
@@ -260,8 +260,9 @@ public class VideoProcessor {
 
     public void saveFrame(int index, Mat frame) {
         String fileIndex = String.valueOf(index);
+        String currentFileName = "VideoObject-" + Long.toHexString(System.currentTimeMillis());
         String path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp/";
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName);
         Imgcodecs.imwrite(path + fileIndex + ".jpg", frame);
     }
 

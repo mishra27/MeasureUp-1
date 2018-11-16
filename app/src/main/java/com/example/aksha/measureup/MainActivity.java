@@ -444,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 //            File videoFile = new File(Environment.getExternalStoragePublicDirectory(
 //                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
             File videoFile = new File(Environment.getExternalStoragePublicDirectory(
-                  Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video", "video.mp4");
+                  Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
             String aPath = videoFile.getAbsolutePath();
             videoFile_ = videoFile;
             File dir = videoFile.getParentFile();
@@ -483,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     public void onClickProcessor(View view) {
         File videoFile = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video", "video.mp4");
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
         VideoProcessor vp = new VideoProcessor(videoFile);
         // will save first and last frame and grab all frames in ArrayList<Mat>
         vp.grabFrames();
