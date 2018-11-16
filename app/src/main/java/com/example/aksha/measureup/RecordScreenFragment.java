@@ -1,6 +1,7 @@
 package com.example.aksha.measureup;
 
 import android.app.ActionBar;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.opengl.EGL14;
@@ -466,8 +467,9 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
         if (!recording) {
             last = true;
-        }
-        else
+            new ObjectSaveDialog(this.getContext()).show();
+        } else {
             firstTime = true;
+        }
     }
 }
