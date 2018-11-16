@@ -6,20 +6,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class GridAdapter extends BaseAdapter {
 
-    private TextView text1;
+   //private TextView text1;
+    private ImageView img;
     private TextView text2;
-
+    private Integer[] images = {};
     private Context context;
     private String[] items;
     LayoutInflater inflater;
 
-    public GridAdapter(Context context, String[] items) {
+    public GridAdapter(Context context, String[] items, Integer[] array) {
         this.context = context;
         this.items = items;
+        images = array;
         inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -54,11 +57,11 @@ public class GridAdapter extends BaseAdapter {
         else {
             gridView = (View) convertView;
         }
-        text1 = (TextView) gridView
-                .findViewById(R.id.Test1);
+        img.setImageResource(images[position]);
         text2 = (TextView) gridView
                 .findViewById(R.id.Test2);
-        text1.setText(items[position]);
+        //.setText(items[position]);
+
 
         return gridView;
 
