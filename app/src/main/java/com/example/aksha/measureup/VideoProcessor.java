@@ -54,7 +54,8 @@ public class VideoProcessor {
     private MatOfPoint2f initPts2_;
     private Point firstOutPoint_;
     private Point secondOutPoint_;
-    private MatOfByte status_;
+    private MatOfByte status1_;
+    private MatOfByte status2_;
     private MatOfFloat err_;
 
 
@@ -75,7 +76,8 @@ public class VideoProcessor {
         initPts2_ = new MatOfPoint2f();
         firstOutPoint_ = new Point();
         secondOutPoint_ = new Point();
-        status_ = new MatOfByte();
+        status1_ = new MatOfByte();
+        status2_ = new MatOfByte();
         err_ = new MatOfFloat();
         firstCorners_ = new MatOfPoint();
         secondCorners_ = new MatOfPoint();
@@ -101,78 +103,109 @@ public class VideoProcessor {
 
     public void trackOpticalFlow() {
         findInitFeatures(firstFrame_, firstCorners_, firstPoint_, initPts1_);
+        findInitFeatures(firstFrame_, secondCorners_, secondPoint_, initPts2_);
         Mat prevImg = new Mat();
         Mat nextImg = new Mat();
-        MatOfPoint2f prevPts;
-        MatOfPoint2f nextPts;
-        prevPts = initPts1_;
-        nextPts = new MatOfPoint2f();
-        List<Point> initPF = initPts1_.toList();
-        double aveX = 0.0;
-        double aveY = 0.0;
-        for (int j=0; j<initPF.size(); j++) {
-            aveX = initPF.get(j).x + aveX;
-            aveY = initPF.get(j).y + aveY;
+        MatOfPoint2f prevPts1;
+        MatOfPoint2f nextPts1;
+        MatOfPoint2f prevPts2;
+        MatOfPoint2f nextPts2;
+        prevPts1 = initPts1_;
+        nextPts1 = new MatOfPoint2f();
+        List<Point> initPF1 = initPts1_.toList();
+        prevPts2 = initPts2_;
+        nextPts2 = new MatOfPoint2f();
+        List<Point> initPF2 = initPts1_.toList();
+        double aveX1 = 0.0;
+        double aveY1 = 0.0;
+        double aveX2 = 0.0;
+        double aveY2 = 0.0;
+
+        for (int j = 0; j < initPF1.size(); j++) {
+            aveX1 = initPF1.get(j).x + aveX1;
+            aveY1 = initPF1.get(j).y + aveY1;
         }
-        aveX = aveX/initPF.size();
-        aveY = aveY/initPF.size();
-        firstOutPoint_.x = aveX;
-        firstOutPoint_.y = aveY;
-        Log.d("THATX video : ", String.valueOf(aveX));
-        Log.d("THATY video : ", String.valueOf(aveY));
+        aveX1 = aveX1 / initPF1.size();
+        aveY1 = aveY1 / initPF1.size();
+        firstOutPoint_.x = aveX1;
+        firstOutPoint_.y = aveY1;
+        Log.d("THATX video : ", String.valueOf(aveX1));
+        Log.d("THATY video : ", String.valueOf(aveY1));
+
+        for (int j = 0; j < initPF2.size(); j++) {
+            aveX2 = initPF2.get(j).x + aveX2;
+            aveY2 = initPF2.get(j).y + aveY2;
+        }
+        aveX2 = aveX2 / initPF2.size();
+        aveY2 = aveY2 / initPF2.size();
+        secondOutPoint_.x = aveX2;
+        secondOutPoint_.y = aveY2;
+        Log.d("THATX video 2: ", String.valueOf(aveX2));
+        Log.d("THATY video 2: ", String.valueOf(aveY2));
 
 
-        for (int i=0; i<numOfFrame_-1; i++) {
+        for (int i = 0; i < numOfFrame_ - 1; i++) {
             prevImg = frames_.get(i);
-            nextImg = frames_.get(i+1);
-            Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_);
-            List<Point> outPtsList = new ArrayList<>(nextPts.toList());
-            outPtsList.clear();
-            // select good points
-           int numOfOutPoints = status_.toList().size();
-           MatOfPoint2f goodNew = new MatOfPoint2f();
-           for (int k=0; k<numOfOutPoints; k++) {
-               if (status_.toList().get(k) == 1) {
-                   outPtsList.add(nextPts.toList().get(k));
-               }
-           }
-            goodNew.fromList(outPtsList);
-            prevPts = goodNew;
-            aveX = 0.0;
-            aveY = 0.0;
+            nextImg = frames_.get(i + 1);
+            Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts1, nextPts1, status1_, err_, winSize_, maxLevel_);
+            Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts2, nextPts2, status2_, err_, winSize_, maxLevel_);
+            List<Point> outPtsList1 = new ArrayList<>(nextPts1.toList());
+            outPtsList1.clear();
+            getGoodNextPoints(outPtsList1, nextPts1, prevPts1, firstOutPoint_);
+            List<Point> outPtsList2 = new ArrayList<>(nextPts2.toList());
+            outPtsList2.clear();
+            getGoodNextPoints(outPtsList2, nextPts2, prevPts2, secondOutPoint_);
 
-            for (int j=0; j<outPtsList.size(); j++) {
-                aveX = outPtsList.get(j).x + aveX;
-                aveY = outPtsList.get(j).y + aveY;
-            }
-            aveX = aveX/outPtsList.size();
-            aveY = aveY/outPtsList.size();
-            firstOutPoint_.x = aveX;
-            firstOutPoint_.y = aveY;
-            Log.d("THATX video : ", String.valueOf(aveX));
-            Log.d("THATY video : ", String.valueOf(aveY));
             Mat prev = frames_.get(i);
-            Imgproc.circle(prev, new Point(aveX, aveY), 20, new Scalar(0, 0, 255), 5);
-            if (i%10 == 0) {
-                saveFrame(i+100, prev );
+            Imgproc.circle(prev, new Point(firstOutPoint_.x, firstOutPoint_.y), 20, new Scalar(0, 0, 255), 5);
+            Imgproc.circle(prev, new Point(secondOutPoint_.x, secondOutPoint_.y), 20, new Scalar(0, 0, 255), 5);
+            if (i % 10 == 0) {
+                saveFrame(i + 100, prev);
             }
-
-
-
         }
-//        List<Point> outPtsList = nextPts.toList();
-//
-//        double aveX = 0.0;
-//        double aveY = 0.0;
-//        for (int i=0; i<outPtsList.size()-1; i++) {
-//            aveX = outPtsList.get(i).x + aveX;
-//            aveY = outPtsList.get(i).y + aveY;
-//        }
-//        aveX = aveX/outPtsList.size();
-//        aveY = aveY/outPtsList.size();
-//        firstOutPoint_.x = aveX;
-//        firstOutPoint_.y = aveY;
     }
+
+        public double[] getGoodNextPoints(List<Point> outPtsList1, MatOfPoint2f nextPts1, MatOfPoint2f prevPts1, Point outputPoint) {
+            double[] xy = {0, 0};
+            outPtsList1 = new ArrayList<>(nextPts1.toList());
+            outPtsList1.clear();
+            // select good points
+            int numOfOutPoints1 = status1_.toList().size();
+            MatOfPoint2f goodNew1 = new MatOfPoint2f();
+            for (int k = 0; k < numOfOutPoints1; k++) {
+                if (status1_.toList().get(k) == 1) {
+                    outPtsList1.add(nextPts1.toList().get(k));
+                }
+            }
+            goodNew1.fromList(outPtsList1);
+            prevPts1 = goodNew1;
+            xy[0] = 0.0;
+            xy[1] = 0.0;
+
+            for (int j = 0; j < outPtsList1.size(); j++) {
+                xy[0] = outPtsList1.get(j).x + xy[0];
+                xy[1] = outPtsList1.get(j).y + xy[1];
+            }
+            xy[0] = xy[0] / outPtsList1.size();
+            xy[1] = xy[1] / outPtsList1.size();
+            outputPoint.x = xy[0];
+            outputPoint.y = xy[1];
+            Log.d("THATX video : ", String.valueOf(xy[0]));
+            Log.d("THATY video : ", String.valueOf(xy[1]));
+            return xy;
+        }
+//        List<Point> outPtsList = nextPts1.toList();
+//
+//        double aveX1 = 0.0;
+//        double aveY1 = 0.0;
+//        for (int i=0; i<outPtsList.size()-1; i++) {
+//            aveX1 = outPtsList.get(i).x + aveX1;
+//            aveY1 = outPtsList.get(i).y + aveY1;
+//        }
+//        aveX1 = aveX1/outPtsList.size();
+//        aveY1 = aveY1/outPtsList.size();
+//        firstOutPoint_.x = aveX1;
+//        firstOutPoint_.y = aveY1;
 
     public  double measurement (double opticalFocalM, double ccdHeigthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
         double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdHeigthM, frameHeight_);
