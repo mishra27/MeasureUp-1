@@ -14,5 +14,6 @@
         android:id="@+id/Test2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Second" />
+        android:text="Second"
+        android:gravity="center"/>
 </LinearLayout>
