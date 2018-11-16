@@ -13,14 +13,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.navigation.NavController;
 
 public class ObjectSaveDialog extends Dialog {
     View view;
     FrameLayout dialogLayout;
     LinearLayout buttonsLayout;
 
+    private NavController navController;
+
     private Button cancelButton;
     private Button dismissButton;
+
+    public ObjectSaveDialog(@NonNull Context context, NavController navController) {
+        this(context);
+        this.navController = navController;
+    }
 
     public ObjectSaveDialog(@NonNull Context context) {
         super(context);
@@ -108,7 +116,8 @@ public class ObjectSaveDialog extends Dialog {
             public void onClick(View v) {
                 ObjectSaveDialog.this.dismiss();
 
-                // TODO navigate to point selection screen
+                // navigate to point selection screen
+                navController.navigate(R.id.action_recordScreenFragment_to_pointSelectionFragment);
             }
         });
     }
