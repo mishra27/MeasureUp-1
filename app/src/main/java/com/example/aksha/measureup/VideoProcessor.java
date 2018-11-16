@@ -140,6 +140,7 @@ public class VideoProcessor {
             prevPts = goodNew;
             aveX = 0.0;
             aveY = 0.0;
+
             for (int j=0; j<outPtsList.size(); j++) {
                 aveX = outPtsList.get(j).x + aveX;
                 aveY = outPtsList.get(j).y + aveY;
@@ -151,8 +152,11 @@ public class VideoProcessor {
             Log.d("THATX video : ", String.valueOf(aveX));
             Log.d("THATY video : ", String.valueOf(aveY));
             Mat prev = frames_.get(i);
-            Imgproc.circle(prev, new Point(aveX, aveY), 20, new Scalar(0, 255, 0, 255));
-            saveFrame(i+100, prev );
+            Imgproc.circle(prev, new Point(aveX, aveY), 20, new Scalar(0, 0, 255), 5);
+            if (i%10 == 0) {
+                saveFrame(i+100, prev );
+            }
+
 
 
         }
@@ -168,6 +172,18 @@ public class VideoProcessor {
 //        aveY = aveY/outPtsList.size();
 //        firstOutPoint_.x = aveX;
 //        firstOutPoint_.y = aveY;
+    }
+
+    public  double measurement (double opticalFocalM, double ccdHeigthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
+        double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdHeigthM, frameHeight_);
+        Mat tranlationMatrix = new Mat(4, 3, CvType.CV_64F);
+        translationMatrix(tranlationMatrix, distanceM);
+        ArrayList<Point> outputPoint = new ArrayList<Point>();
+        double[] world1 = {0, 0, 0};
+        double[] world2 = {0, 0, 0};
+        measureRealXYZ(intrinsicFocal, tranlationMatrix, first2.get(0), first2.get(1), world1);
+        measureRealXYZ(intrinsicFocal, tranlationMatrix, last2.get(0), last2.get(1), world2);
+        return Math.abs(world1[2] - world2[2]);
     }
 
     public void grabFrames() {
@@ -195,13 +211,13 @@ public class VideoProcessor {
         for (long tl=0; tl<(totalLength - 34000); tl=tl+step) {
             Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
             grabFrameAsMat(tl, newFrame);
-            saveFrame(numOfFrame_, newFrame);
             frames.add(newFrame);
             numOfFrame_++;
         }
         firstFrame_ = frames.get(0);
         lastFrame_ = frames.get(frames.size()-1);
         Log.d("HERE size : ", String.valueOf(frames.size()-1));
+        saveFrame(0, firstFrame_);
 
 
 
@@ -217,6 +233,8 @@ public class VideoProcessor {
         Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
         int width = currentFrame.getWidth();
         int height = currentFrame.getHeight();
+        frameHeight_ = height;
+        frameWidth_ = width;
         int[] rawPixels = new int[width*height];
         currentFrame.getPixels(rawPixels, 0, width, 0, 0, width, height);
         int[] R = new int[rawPixels.length];
@@ -245,6 +263,39 @@ public class VideoProcessor {
         inputFrame.copyTo(cropped, mask);
         saveFrame(999, cropped);
         initPts.fromList(corners.toList());
+    }
+
+    public void translationMatrix (Mat matrix64F, double distanceM) {
+        Mat tm = new Mat(4, 3, CvType.CV_64F);
+        tm = matrix64F;
+        double[] row0 = {1.0, 0, 0, distanceM};
+        double[] row1 = {0, 1, 0, 0};
+        double[] row2 = {0, 0, 1, 0};
+        tm.put(0, 0, row0);
+        tm.put(1, 0, row1);
+        tm.put(2, 0, row2);
+    }
+
+    public double intrinsicFocal (double opticalFocalM, double ccdHeightM, double imgHeight) {
+        return opticalFocalM * imgHeight / ccdHeightM;
+    }
+
+    public void measureRealXYZ(double intrinsicFocalM, Mat translationMatrix, Point imgXYL, Point imgXYR, double[] worldXYZ) {
+        double z =
+                intrinsicFocalM * (intrinsicFocalM * translationMatrix.get(0, 3)[0])/
+                        (imgXYR.x *
+                                (translationMatrix.get(2, 0)[0] * imgXYL.x +
+                                translationMatrix.get(2, 1)[0] * imgXYL.y +
+                                translationMatrix.get(2, 2)[0] * intrinsicFocalM) -
+                        intrinsicFocalM *
+                                (translationMatrix.get(0, 0)[0] * imgXYL.x +
+                                translationMatrix.get(0, 1)[0] * imgXYL.y) +
+                                translationMatrix.get(0, 2)[0] * intrinsicFocalM);
+        double x = z * imgXYL.x / intrinsicFocalM;
+        double y = z * imgXYL.y / intrinsicFocalM;
+        worldXYZ[0] = x;
+        worldXYZ[1] = y;
+        worldXYZ[2] = z;
     }
 
     // get properties
