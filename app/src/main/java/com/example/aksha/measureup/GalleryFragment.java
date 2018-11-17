@@ -12,7 +12,7 @@ import androidx.fragment.app.Fragment;
 
 public class GalleryFragment extends Fragment {
     GridView gridView;
-    public String[] items ={"Hello","I'm","a","cool","dude","!"};
+    public String[] items ={"Hello","I'm","a","cool"};
     private Integer[] images = {R.drawable.image1, R.drawable.image2, R.drawable.image3, R.drawable.image4};
 
     @Nullable

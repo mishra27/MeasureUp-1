@@ -14,7 +14,7 @@ public class GridAdapter extends BaseAdapter {
    //private TextView text1;
     private ImageView img;
     private TextView text2;
-    private Integer[] images = {};
+    private Integer[] images;
     private Context context;
     private String[] items;
     LayoutInflater inflater;
@@ -22,7 +22,7 @@ public class GridAdapter extends BaseAdapter {
     public GridAdapter(Context context, String[] items, Integer[] array) {
         this.context = context;
         this.items = items;
-        images = array;
+        this.images = array;
         inflater = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -57,11 +57,15 @@ public class GridAdapter extends BaseAdapter {
         else {
             gridView = (View) convertView;
         }
-        img.setImageResource(images[position]);
+
+       // img.setImageResource(images[position]);
         text2 = (TextView) gridView
                 .findViewById(R.id.Test2);
+        text2.setText(items[position]);
+        img = (ImageView) gridView
+                .findViewById(R.id.grid_item_image);
         //.setText(items[position]);
-
+        img.setImageResource(images[position]);
 
         return gridView;
 
