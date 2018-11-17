@@ -1,62 +1,61 @@
 package com.example.aksha.measureup;
 
-import android.os.Environment;
 import android.view.View;
 
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import java.io.File;
 
 import androidx.test.core.app.ActivityScenario;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isClickable;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static org.junit.Assert.assertTrue;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
-@RunWith(AndroidJUnit4.class)
-@LargeTest
+
 public class MainActivityTest {
 
     @Before
     public void launchActivity() {
-         ActivityScenario.launch(MainActivity.class);
+        ActivityScenario.launch(MainActivity.class);
     }
 
+
     @Test
-    public void testIfDirectoryWrittenAfterRecord() {
-        Matcher<View> recordView = withId(R.id.recordButtonView);
+    public void testSettingsDisplay() {
 
-        // grab current amount of directories
-        File measureUpDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp");
-        int files = measureUpDir.list().length;
+        onView(withId(R.id.imageButton)).check(matches(isClickable()));
+        onView(withId(R.id.imageButton)).check(matches(isDisplayed()));
+        Matcher<View> settings = withId(R.id.imageButton);
 
-        // click record button (start recording)
-        onView(recordView).perform(click());
+        onView(settings).perform(click());
+        onView(withText("Password")).check(matches(isDisplayed()));
+        onView(withText("Security Question")).check(matches(isDisplayed()));
 
-        // wait for app to record for 1s
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        onView(withId(R.id.button2)).check(matches(isClickable()));
+        onView(withId(R.id.button2)).check(matches(isDisplayed()));
+        Matcher<View> password = withId(R.id.button2);
+        onView(password).perform(click());
 
-        // stop recording
-        onView(recordView).perform(click());
 
-        // wait for files to be written
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        onView(withId(R.id.button10)).check(matches(isClickable()));
+        onView(withId(R.id.button10)).check(matches(isDisplayed()));
+        Matcher<View> securityQuestion = withId(R.id.button2);
+        onView(securityQuestion).perform(click());
+    }
+    @Test
+    public void testGalleryDisplay() {
 
-        assertTrue(measureUpDir.list().length > files);
+        onView(withId(R.id.imageButton2)).check(matches(isClickable()));
+        onView(withId(R.id.imageButton2)).check(matches(isDisplayed()));
+        Matcher<View> gallery = withId(R.id.imageButton2);
+
+        onView(gallery).perform(click());
+        onView(withText("Gallery")).check(matches(isDisplayed()));
     }
 }

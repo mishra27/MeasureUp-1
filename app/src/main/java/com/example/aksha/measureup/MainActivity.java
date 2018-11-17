@@ -2,6 +2,7 @@ package com.example.aksha.measureup;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.RelativeLayout;
 
 import com.example.common.helpers.TransparentNavigationHelper;
 
@@ -20,6 +21,7 @@ import androidx.navigation.ui.NavigationUI;
  */
 public class MainActivity extends AppCompatActivity {
     NavController navController;
+    private RelativeLayout mContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
