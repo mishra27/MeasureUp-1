@@ -354,11 +354,9 @@ public class VideoProcessor {
     }
 
     public void saveFrame(int index, Mat frame) {
+        String path = videoFile_.getParent();
         String fileIndex = String.valueOf(index);
-        String currentFileName = "VideoObject-" + Long.toHexString(System.currentTimeMillis());
-        String path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "video";
-        Imgcodecs.imwrite(path + fileIndex + ".jpg", frame);
+        Imgcodecs.imwrite(path + "/" + fileIndex + ".jpg", frame);
     }
 
 }

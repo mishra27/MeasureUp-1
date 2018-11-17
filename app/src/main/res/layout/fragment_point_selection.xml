@@ -8,6 +8,14 @@
     android:background="@color/colorAccent"
     tools:context=".PointSelectionFragment">
 
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="384dp"
+        tools:layout_editor_absoluteY="24dp"
+        tools:src="@tools:sample/avatars" />
+
     <com.example.aksha.measureup.PointSelectorView
         android:id="@+id/pointSelectorView"
         android:layout_width="0.15in"
@@ -28,4 +36,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.9"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
