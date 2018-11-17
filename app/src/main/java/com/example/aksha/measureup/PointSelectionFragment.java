@@ -54,6 +54,8 @@ public class PointSelectionFragment extends Fragment {
 
                 point1.invalidate();
                 point2.invalidate();
+
+                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
 
