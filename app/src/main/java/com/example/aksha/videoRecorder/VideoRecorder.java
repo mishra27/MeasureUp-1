@@ -1,19 +1,14 @@
-package com.example.aksha.measureup;
+package com.example.aksha.videoRecorder;
 
 import android.graphics.Rect;
 import android.opengl.EGL14;
 import android.opengl.EGLExt;
 import android.opengl.GLES20;
 
-import com.example.aksha.measureup.TextureMovieEncoder2;
-import com.example.aksha.measureup.VideoEncoderCore;
+import com.example.aksha.measureup.MainActivity;
 
 import java.io.File;
 import java.io.IOException;
-
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
 
 public class VideoRecorder {
 
@@ -27,9 +22,7 @@ public class VideoRecorder {
     private CaptureContext mEncoderContext;
 
 
-    public VideoRecorder(int width, int height, int bitrate, File outputFile,
-                         MainActivity listener) throws IOException {
-        listener = listener;
+    public VideoRecorder(int width, int height, int bitrate, File outputFile) throws IOException {
         mEncoderCore = new VideoEncoderCore(width, height, bitrate, outputFile);
         mVideoRect = new Rect(0,0,width,height);
     }
