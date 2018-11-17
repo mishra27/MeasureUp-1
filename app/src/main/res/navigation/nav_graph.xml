@@ -37,5 +37,13 @@
             android:id="@+id/action_recordScreenFragment_to_galleryFragment"
             app:destination="@id/galleryFragment"
             app:enterAnim="@anim/nav_default_pop_enter_anim" />
+        <action
+            android:id="@+id/action_recordScreenFragment_to_pointSelectionFragment"
+            app:destination="@id/pointSelectionFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/pointSelectionFragment"
+        android:name="com.example.aksha.measureup.PointSelectionFragment"
+        android:label="Point Selection"
+        tools:layout="@layout/fragment_point_selection" ></fragment>
 </navigation>
