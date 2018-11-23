@@ -37,7 +37,8 @@ dependencies {
 
     implementation 'android.arch.navigation:navigation-fragment:' + rootProject.navigationVersion
     implementation 'android.arch.navigation:navigation-ui:' + rootProject.navigationVersion
-
+    implementation 'android.arch.persistence.room:runtime:1.0.0'
+    annotationProcessor 'android.arch.persistence.room:compiler:1.0.0'
     // Testing-only dependencies
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
