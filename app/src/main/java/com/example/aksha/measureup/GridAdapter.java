@@ -12,14 +12,12 @@ import android.widget.TextView;
 public class GridAdapter extends BaseAdapter {
 
    //private TextView text1;
-    private ImageView img;
-    private TextView text2;
-    private Integer[] images;
+    private int[] images;
     private Context context;
     private String[] items;
     LayoutInflater inflater;
 
-    public GridAdapter(Context context, String[] items, Integer[] array) {
+    public GridAdapter(Context context, String[] items, int[] array) {
         this.context = context;
         this.items = items;
         this.images = array;
@@ -44,28 +42,31 @@ public class GridAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        LayoutInflater inflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         View gridView;
+        LayoutInflater inflater = (LayoutInflater) context
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (convertView == null) {
 
             gridView = new View(context);
             gridView = inflater.inflate(R.layout.gallery_object_layout, null);
+            ImageView img = new ImageView(context);
+            TextView text = new TextView(context);
+            text = (TextView) gridView.findViewById(R.id.textView);
+            text.setText(items[position]);
+            img = (ImageView) gridView.findViewById(R.id.imageView);
+            //.setText(items[position]);
+//            img.setLayoutParams(new GridView.LayoutParams(85, 85));
+//            img.setScaleType(ImageView.ScaleType.CENTER_CROP);
+//            img.setPadding(8, 8, 8, 8);
+            img.setImageResource(images[position]);
 
         }
         else {
             gridView = (View) convertView;
         }
 
-       // img.setImageResource(images[position]);
-        text2 = (TextView) gridView
-                .findViewById(R.id.Test2);
-        text2.setText(items[position]);
-        img = (ImageView) gridView
-                .findViewById(R.id.grid_item_image);
-        //.setText(items[position]);
-        img.setImageResource(images[position]);
+
 
         return gridView;
 
