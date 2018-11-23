@@ -7,11 +7,18 @@
     tools:context=".GalleryFragment">
 
     <GridView
-        android:id="@+id/gallery_grid_dynamic"
-        android:layout_width="368dp"
-        android:layout_height="495dp"
+        android:id="@+id/gridView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:columnWidth="10dp"
+        android:horizontalSpacing="10dp"
         android:numColumns="2"
-        android:stretchMode="spacingWidthUniform"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="8dp" />
+        android:listSelector="#e1ecef"
+        android:scrollbars="none"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="10dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
