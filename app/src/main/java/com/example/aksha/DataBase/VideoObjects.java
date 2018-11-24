@@ -1,4 +1,6 @@
 package com.example.aksha.DataBase;
+import android.graphics.Bitmap;
+
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -23,8 +25,22 @@ public class VideoObjects {
     @ColumnInfo(name = "video_path")
     public String videoPath;
 
+//    @ColumnInfo(name = "video_thumbnail")
+//    public Bitmap videoThumbnail;
+//
+//
+//    public void setVideoThumbnail(Bitmap Thumbnail){
+//        this.videoThumbnail = Thumbnail;
+//    }
+//    public Bitmap getVideoThumbnail(){
+//
+//        return videoThumbnail;
+//    }
     public void setVideoName(String videoName){
         this.videoName = videoName;
+    }
+    public String getVideoName(){
+        return videoName;
     }
     public Double getMoveDistance(){
         return moveDistance;

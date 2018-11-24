@@ -57,6 +57,11 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
+import org.jcodec.api.FrameGrab;
+import org.jcodec.api.JCodecException;
+import org.jcodec.common.AndroidUtil;
+import org.jcodec.common.model.Picture;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -392,6 +397,14 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                         tempObject.setVideoPath(currentVideoPath);
                         tempObject.setVideoName(currentFileName);
                         tempObject.setMoveDistance(currVideoDistance);
+//                        try {
+//                            Picture thumbnail = FrameGrab.getFrameFromFile(new File(currentVideoPath), 1);
+//                            tempObject.setVideoThumbnail(AndroidUtil.toBitmap(thumbnail));
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        } catch (JCodecException e) {
+//                            e.printStackTrace();
+//                        }
                         db.videoObjectDao().insertAll(tempObject);
                     }
                 }) .start();
