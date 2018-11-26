@@ -175,8 +175,9 @@ public class PointSelectionFragment extends Fragment {
     }
 
     public void onClickProcessor() {
-        vp.trackOpticalFlow();
         ArrayList<Point> iniPoints = getMeasurePoints();
+        vp.setInitPoints(iniPoints.get(0), iniPoints.get(1));
+        vp.trackOpticalFlow();
         ArrayList<Point> finalPoints = vp.getFinalPoints();
         SizeF sizeF = getCameraResolution(0);
         double oFM = getFocalLength(0) / 1000;

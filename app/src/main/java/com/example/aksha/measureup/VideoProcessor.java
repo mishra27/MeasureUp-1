@@ -359,4 +359,11 @@ public class VideoProcessor {
         Imgcodecs.imwrite(path + "/" + fileIndex + ".jpg", frame);
     }
 
+    public void setInitPoints(Point init1, Point init2) {
+        firstPoint_.x = init1.x;
+        firstPoint_.y = init1.y;
+        secondPoint_.x = init2.x;
+        secondPoint_.y = init2.y;
+    }
+
 }
