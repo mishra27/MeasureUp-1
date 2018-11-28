@@ -2,6 +2,7 @@ package com.example.aksha.measureup;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,14 @@ import android.widget.TextView;
 
 import com.example.aksha.DataBase.AppDatabase;
 import com.example.aksha.DataBase.VideoObjects;
+
+import org.jcodec.api.FrameGrab;
+import org.jcodec.api.JCodecException;
+import org.jcodec.common.AndroidUtil;
+import org.jcodec.common.model.Picture;
+
+import java.io.File;
+import java.io.IOException;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
@@ -96,11 +105,24 @@ public class ObjectSaveDialog extends Dialog {
                 new Thread(new Runnable() {
                                         @Override
                     public void run() {
+                                            Bitmap img = null;
+                                            try {
+                                                Picture thumbnail = FrameGrab.getFrameFromFile(new File(path), 1);
+                                                img = AndroidUtil.toBitmap(thumbnail);
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            } catch (JCodecException e) {
+                                                e.printStackTrace();
+                                            }
+
+
+
+
                        VideoObjects obj = new VideoObjects();
                         obj.setVideoName(newFilename);
                         obj.setMoveDistance(dist);
                         obj.setVideoPath(path);
-
+                        obj.setVideoThumbnail(img);
                         db.videoObjectDao().insertAll(obj);
                     }
                 }) .start();

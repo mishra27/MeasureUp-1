@@ -25,17 +25,17 @@ public class VideoObjects {
     @ColumnInfo(name = "video_path")
     public String videoPath;
 
-//    @ColumnInfo(name = "video_thumbnail")
-//    public Bitmap videoThumbnail;
-//
-//
-//    public void setVideoThumbnail(Bitmap Thumbnail){
-//        this.videoThumbnail = Thumbnail;
-//    }
-//    public Bitmap getVideoThumbnail(){
-//
-//        return videoThumbnail;
-//    }
+    @ColumnInfo(name = "video_thumbnail")
+    public Bitmap videoThumbnail;
+
+
+    public void setVideoThumbnail(Bitmap Thumbnail){
+        this.videoThumbnail = Thumbnail;
+    }
+    public Bitmap getVideoThumbnail(){
+
+        return videoThumbnail;
+    }
     public void setVideoName(String videoName){
         this.videoName = videoName;
     }

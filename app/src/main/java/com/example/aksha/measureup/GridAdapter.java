@@ -67,14 +67,7 @@ public class GridAdapter extends BaseAdapter {
 //            img.setLayoutParams(new GridView.LayoutParams(85, 85));
 //            img.setScaleType(ImageView.ScaleType.CENTER_CROP);
 //            img.setPadding(8, 8, 8, 8);
-            try {
-                Picture thumbnail = FrameGrab.getFrameFromFile(new File(db.get(position).getVideoFile()), 1);
-                img.setImageBitmap(AndroidUtil.toBitmap(thumbnail));
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JCodecException e) {
-                e.printStackTrace();
-            }
+            img.setImageBitmap(db.get(position).getVideoThumbnail());
 
 
 
