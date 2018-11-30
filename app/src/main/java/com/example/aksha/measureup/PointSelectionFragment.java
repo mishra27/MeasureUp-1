@@ -133,8 +133,8 @@ public class PointSelectionFragment extends Fragment {
     public ArrayList<Point> getMeasurePoints() {
         ArrayList<Point> points = new ArrayList<>();
 
-        points.add(new Point(point1.getX(), point1.getY()));
-        points.add(new Point(point2.getX(), point2.getY()));
+        points.add(point1.getPoint());
+        points.add(point2.getPoint());
 
         return points;
     }

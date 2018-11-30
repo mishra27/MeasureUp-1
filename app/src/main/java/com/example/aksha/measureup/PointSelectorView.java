@@ -7,6 +7,8 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import org.opencv.core.Point;
+
 import androidx.core.view.MotionEventCompat;
 
 import static android.view.MotionEvent.INVALID_POINTER_ID;
@@ -53,7 +55,7 @@ public class PointSelectorView extends View {
 
         int height = getHeight();
         int width = getWidth();
-        float radius = Math.min(width, height) / 2f;
+        float radius = Math.min(width, height) / 2f * 0.75f;
 
         canvas.drawCircle(width / 2, height / 2, radius - outlinePaint.getStrokeWidth() / 2, fillPaint);
         canvas.drawCircle(width / 2, height / 2, radius - outlinePaint.getStrokeWidth() / 2, outlinePaint);
@@ -61,6 +63,15 @@ public class PointSelectorView extends View {
         float crossSize = (radius - outlinePaint.getStrokeWidth()) / 2f;
         canvas.drawLine(width / 2 - crossSize, height / 2, width / 2 + crossSize, height / 2, outlinePaint);
         canvas.drawLine(width / 2, height / 2 - crossSize, width / 2, height / 2 + crossSize, outlinePaint);
+    }
+
+    /**
+     * Returns the point of the center of the view.
+     *
+     * @return the point of the center of the view.
+     */
+    public Point getPoint() {
+        return new Point(this.getX() + getWidth() / 2d, this.getY() + getHeight() / 2d);
     }
 
     @Override
