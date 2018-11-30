@@ -2,7 +2,6 @@ package com.example.aksha.measureup;
 
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
-import android.os.Environment;
 import android.util.Log;
 
 import org.opencv.core.CvType;
@@ -200,11 +199,11 @@ public class VideoProcessor {
 
 
 
-    public void grabFrames() {
-        frameGrabber(50000, frames_, videoFile_);
+    public void grabFrames(boolean first) {
+        frameGrabber(50000, frames_, first);
     }
 
-    public void frameGrabber(long step, ArrayList<Mat> frames, File videoFile) {
+    public void frameGrabber(long step, ArrayList<Mat> frames, boolean first) {
 
         // grab the first frame info to construct Mat
         Bitmap firstFrame = mmr_.getFrameAtTime(0);
@@ -222,6 +221,13 @@ public class VideoProcessor {
 
         // loop over to grab frame every timeLapseUs
 
+        if (first == true) {
+            Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
+            grabFrameAsMat(0, newFrame);
+            saveFrame(0, newFrame);
+            return;
+        }
+
         for (long tl=0; tl<(totalLength - 34000); tl=tl+step) {
             Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
             grabFrameAsMat(tl, newFrame);
@@ -232,8 +238,6 @@ public class VideoProcessor {
         lastFrame_ = frames.get(frames.size()-1);
         Log.d("HERE size : ", String.valueOf(frames.size()-1));
         saveFrame(0, firstFrame_);
-
-
 
 //        Mat gray = new Mat(height, width, CvType.CV_32S);
 //        gray.put(0, 0, graycale);
@@ -288,7 +292,7 @@ public class VideoProcessor {
         double[] world2 = new double[3];
         measureRealXYZ(intrinsicFocal, distanceM, first2.get(0), last2.get(0), world1);
         measureRealXYZ(intrinsicFocal, distanceM, first2.get(1), last2.get(1), world2);
-        return Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2));
+        return Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2));
     }
 
     public void translationMatrix (Mat matrix64F, double distanceM) {
