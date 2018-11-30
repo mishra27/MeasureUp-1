@@ -1,18 +1,10 @@
 package com.example.aksha.measureup;
 
-import android.app.AlertDialog;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
-
 import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
@@ -46,8 +38,6 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
-import org.opencv.core.Point;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -58,6 +48,12 @@ import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 public class RecordScreenFragment extends Fragment implements GLSurfaceView.Renderer {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -121,7 +117,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     public void onDestroyView() {
         super.onDestroyView();
 
-        ((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
+        //((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
     }
 
     @Override
@@ -467,4 +463,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             firstTime = true;
         }
     }
+
+
+
 }

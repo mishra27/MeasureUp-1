@@ -8,12 +8,6 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
-
 import android.os.Environment;
 import android.util.Log;
 import android.util.SizeF;
@@ -24,16 +18,16 @@ import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.google.common.io.LineReader;
-
 import org.opencv.core.Point;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.nio.file.Files;
 import java.util.ArrayList;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
 public class PointSelectionFragment extends Fragment {
     private PointSelectorView point1;
@@ -76,7 +70,7 @@ public class PointSelectionFragment extends Fragment {
             refDistance = Double.parseDouble(bufferedReader.readLine()) / 100;
 
             vp = new VideoProcessor(video);
-            vp.grabFrames();
+            vp.grabFrames(true);
 
             for (File file : dir.listFiles()) {
                 if (file.getName().endsWith("0.jpg")) {
@@ -89,9 +83,19 @@ public class PointSelectionFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        ((AppCompatActivity) this.getActivity()).getSupportActionBar().hide();
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_point_selection, container, false);
+
 
         imageView = view.findViewById(R.id.imageView4);
         imageView.setImageBitmap(BitmapFactory.decodeFile(img.getAbsolutePath()));
@@ -176,6 +180,7 @@ public class PointSelectionFragment extends Fragment {
 
     public void onClickProcessor() {
         ArrayList<Point> iniPoints = getMeasurePoints();
+        vp.grabFrames(false);
         vp.setInitPoints(iniPoints.get(0), iniPoints.get(1));
         vp.trackOpticalFlow();
         ArrayList<Point> finalPoints = vp.getFinalPoints();
@@ -192,5 +197,12 @@ public class PointSelectionFragment extends Fragment {
 
         builder.create().show();
         Log.d("results: ", String.valueOf(results));
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        //((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
     }
 }
