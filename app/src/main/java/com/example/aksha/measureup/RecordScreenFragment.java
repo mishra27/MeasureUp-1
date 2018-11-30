@@ -1,33 +1,16 @@
 package com.example.aksha.measureup;
 
-import android.app.ActionBar;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.Intent;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-
 import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,7 +57,11 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
-import static com.example.aksha.DataBase.AppDatabase.getAppDatabase;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 public class RecordScreenFragment extends Fragment implements GLSurfaceView.Renderer {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -84,6 +71,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     // Rendering. The Renderers are created here, and initialized when the GL surface is created.
     private GLSurfaceView surfaceView;
     private VideoRecorder mRecorder;
+    private VideoProcessor videoProcessor;
     private android.opengl.EGLConfig mAndroidEGLConfig;
 
     private boolean installRequested;
@@ -142,7 +130,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     public void onDestroyView() {
         super.onDestroyView();
 
-        ((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
+        //((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
     }
 
     @Override
@@ -526,4 +514,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             firstTime = true;
         }
     }
+
+
+
 }
