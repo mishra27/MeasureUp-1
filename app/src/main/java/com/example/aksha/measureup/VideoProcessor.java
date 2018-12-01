@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.util.Log;
 
+import org.opencv.android.Utils;
+import org.opencv.core.CvException;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -224,6 +226,7 @@ public class VideoProcessor {
         if (first == true) {
             Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
             grabFrameAsMat(0, newFrame);
+            firstFrame_ = newFrame;
             saveFrame(0, newFrame);
             return;
         }
@@ -253,21 +256,24 @@ public class VideoProcessor {
         int height = currentFrame.getHeight();
         frameHeight_ = height;
         frameWidth_ = width;
-        int[] rawPixels = new int[width*height];
-        currentFrame.getPixels(rawPixels, 0, width, 0, 0, width, height);
-        int[] R = new int[rawPixels.length];
-        int[] G = new int[rawPixels.length];
-        int[] B = new int[rawPixels.length];
-        int[] graycale = new int[rawPixels.length];
-        for (int i=0; i<rawPixels.length; i++) {
-            R[i] = (rawPixels[i] >> 16) & 0xff;
-            G[i] = (rawPixels[i] >> 8) & 0xff;
-            B[i] = rawPixels[i] & 0xff;
-            graycale[i] = (R[i] + G[i] + B[i])/3;
-        }
-        Mat U32gray = new Mat(height, width, CvType.CV_32S);
-        U32gray.put(0, 0, graycale);
-        U32gray.convertTo(frame, CvType.CV_8UC1);
+//        int[] rawPixels = new int[width*height];
+//        currentFrame.getPixels(rawPixels, 0, width, 0, 0, width, height);
+//        int[] R = new int[rawPixels.length];
+//        int[] G = new int[rawPixels.length];
+//        int[] B = new int[rawPixels.length];
+//        int[] graycale = new int[rawPixels.length];
+//        for (int i=0; i<rawPixels.length; i++) {
+//            R[i] = (rawPixels[i] >> 16) & 0xff;
+//            G[i] = (rawPixels[i] >> 8) & 0xff;
+//            B[i] = rawPixels[i] & 0xff;
+//            graycale[i] = (R[i] + G[i] + B[i])/3;
+//        }
+//        Mat U32gray = new Mat(height, width, CvType.CV_32S);
+//        U32gray.put(0, 0, graycale);
+//        U32gray.convertTo(frame, CvType.CV_8UC1);
+        Mat rgb = new Mat(height, width, CvType.CV_8UC4);
+        Utils.bitmapToMat(currentFrame, rgb);
+        Imgproc.cvtColor(rgb, frame, Imgproc.COLOR_RGB2GRAY);
 
     }
 
@@ -361,6 +367,18 @@ public class VideoProcessor {
         String path = videoFile_.getParent();
         String fileIndex = String.valueOf(index);
         Imgcodecs.imwrite(path + "/" + fileIndex + ".jpg", frame);
+    }
+
+    public Bitmap getFirstBitmap () {
+        Bitmap bmp = null;
+
+        try {
+            //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_RGB2BGRA);
+            bmp = Bitmap.createBitmap(firstFrame_.cols(), firstFrame_.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(firstFrame_, bmp);
+        }
+        catch (CvException e){Log.d("Exception",e.getMessage());}
+        return bmp;
     }
 
     public void setInitPoints(Point init1, Point init2) {

@@ -3,7 +3,6 @@ package com.example.aksha.measureup;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -20,10 +19,10 @@ import android.widget.ImageView;
 
 import org.opencv.core.Point;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,44 +41,61 @@ public class PointSelectionFragment extends Fragment {
 
     public PointSelectionFragment() {
         // Required empty public constructor
-        init();
+        try {
+            init();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void init() {
-        File videoDirectory = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp");
-        File[] fileList = videoDirectory.listFiles();
 
-        if (fileList.length == 0) return;
+    private void init() throws IOException {
+//        File videoDirectory = new File(Environment.getExternalStoragePublicDirectory(
+//                Environment.DIRECTORY_PICTURES) + "/MeasureUp");
+//        File[] fileList = videoDirectory.listFiles();
+//
+//        if (fileList.length == 0) return;
+//
+//        File dir = fileList[fileList.length - 1];
+//        File text = null;
+//        File video = null;
+//
+//        for (File file : dir.listFiles()) {
+//            if (file.getName().endsWith(".mp4")) {
+//                video = file;
+//            } else if (file.getName().endsWith(".txt")) {
+//                text = file;
+//            }
+//        }
+//
+//        if (video == null || text == null) return;
+       String videoPath =  new Scanner(new File(Environment.getExternalStoragePublicDirectory(
+               Environment.DIRECTORY_PICTURES) + "/MeasureUp/filePath.txt")).useDelimiter("\\Z").next();
+        String dist =  new Scanner(new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/MeasureUp/distance.txt")).useDelimiter("\\Z").next();
 
-        File dir = fileList[fileList.length - 1];
-        File text = null;
-        File video = null;
+        refDistance = Double.parseDouble(dist) / 100;
 
-        for (File file : dir.listFiles()) {
-            if (file.getName().endsWith(".mp4")) {
-                video = file;
-            } else if (file.getName().endsWith(".txt")) {
-                text = file;
-            }
-        }
+        Log.d("TESTm ", videoPath);
 
-        if (video == null || text == null) return;
+        File video = new File(videoPath);
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(text))) {
-            refDistance = Double.parseDouble(bufferedReader.readLine()) / 100;
+        vp = new VideoProcessor(video);
 
-            vp = new VideoProcessor(video);
-            vp.grabFrames(true);
-
-            for (File file : dir.listFiles()) {
-                if (file.getName().endsWith("0.jpg")) {
-                    img = file;
-                }
-            }
-        } catch (Exception ex) {
-
-        }
+//        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(text))) {
+//            refDistance = Double.parseDouble(bufferedReader.readLine()) / 100;
+////
+////            vp = new VideoProcessor(video);
+////            vp.grabFrames(true);
+////
+////            for (File file : dir.listFiles()) {
+////                if (file.getName().endsWith("0.jpg")) {
+////                    img = file;
+////                }
+////            }
+//        } catch (Exception ex) {
+//
+//        }
     }
 
     @Override
@@ -98,7 +114,8 @@ public class PointSelectionFragment extends Fragment {
 
 
         imageView = view.findViewById(R.id.imageView4);
-        imageView.setImageBitmap(BitmapFactory.decodeFile(img.getAbsolutePath()));
+        vp.grabFrames(true);
+        imageView.setImageBitmap(vp.getFirstBitmap());
 
         point1 = view.findViewById(R.id.pointSelectorView);
         point2 = view.findViewById(R.id.pointSelectorView2);

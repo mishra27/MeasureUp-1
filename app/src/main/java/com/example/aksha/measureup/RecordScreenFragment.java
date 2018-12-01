@@ -40,11 +40,6 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
-import org.jcodec.api.FrameGrab;
-import org.jcodec.api.JCodecException;
-import org.jcodec.common.AndroidUtil;
-import org.jcodec.common.model.Picture;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -56,13 +51,13 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
-import static com.example.aksha.DataBase.AppDatabase.getAppDatabase;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+
+import static com.example.aksha.DataBase.AppDatabase.getAppDatabase;
 
 public class RecordScreenFragment extends Fragment implements GLSurfaceView.Renderer {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -98,7 +93,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     private double initial;
 
     public AppDatabase db;
-    String currentVideoPath;
+    public String currentVideoPath;
     double currVideoDistance;
 
     // Anchors created from taps used for object placing with a given color.
@@ -117,6 +112,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     public RecordScreenFragment() {
         // Required empty public constructor
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -374,6 +370,24 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
             else if (mRecorder!= null && !mRecorder.isRecording() && last){
 
+
+
+                double distance = Math.abs(getDistance(camera) - initial);
+                result.setGravity(Gravity.CENTER);
+                result.setText("Distance Moved " + Double.toString(distance ) + " cm");
+                last = false;
+
+                File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES) + "/MeasureUp/" +"distance.txt");
+
+                try {
+                    PrintWriter out = new PrintWriter(distanceFile);
+                    out.write(Double.toString(distance));
+                    out.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
                 //Log.d(TAG, "getDistance(camera) "+ getDistance(camera));
                 currVideoDistance = Math.abs(getDistance(camera) - initial);
                 result.setGravity(Gravity.CENTER);
@@ -467,6 +481,14 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                     Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
             File dir = videoFile.getParentFile();
             currentVideoPath = videoFile.getPath();
+
+            try (PrintWriter out = new PrintWriter(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/filePath.txt")){
+                out.println(currentVideoPath);
+            }  catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
             if (!dir.exists()) {
                 dir.mkdirs();
             }
@@ -506,7 +528,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             firstTime = true;
         }
     }
-
 
 
 }
