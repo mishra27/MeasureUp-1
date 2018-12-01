@@ -37,7 +37,6 @@ public class GalleryFragment extends Fragment {
             @Override
             public void run() {
                 dataBase = db.videoObjectDao().getAll();
-                Log.d("name", dataBase.get(0).getVideoFile());
                 gridView.setAdapter(new GridAdapter(getActivity(), dataBase));
             }
         }) .start();
