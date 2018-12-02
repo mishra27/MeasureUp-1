@@ -1,49 +1,57 @@
 package com.example.aksha.measureup;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridView;
-import com.example.aksha.DataBase.videoObjectDao;
 
-import com.example.aksha.DataBase.AppDatabase;
-import com.example.aksha.DataBase.VideoObjects;
+import com.example.aksha.DataBase.VideoObject;
 
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import static com.example.aksha.DataBase.AppDatabase.getAppDatabase;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 public class GalleryFragment extends Fragment {
-    GridView gridView;
-    AppDatabase db;
-    String[] items ={"Hello","plz", "nextLine"};
-    int[] images = {R.drawable.image1, R.drawable.image2, R.drawable.image3};
-    List<VideoObjects> dataBase;
+    private VideoObjectViewModel videoObjectViewModel;
+
+    private GridView gridView;
+    private GridAdapter gridAdapter;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_gallery, container, false);
-        db = getAppDatabase(getContext());
-        gridView = (GridView)rootView.findViewById(R.id.gridView);
-        //gridView.setAdapter(new testImageAdapter(getContext()));
-        new Thread(new Runnable() {
+
+        this.gridView = rootView.findViewById(R.id.gridView);
+        this.gridAdapter = new GridAdapter(getActivity(), null);
+
+        gridView.setAdapter(gridAdapter);
+
+        videoObjectViewModel = ViewModelProviders.of(this).get(VideoObjectViewModel.class);
+        videoObjectViewModel.getAllVideoObjects().observe(this, new Observer<List<VideoObject>>() {
             @Override
-            public void run() {
-                dataBase = db.videoObjectDao().getAll();
-                gridView.setAdapter(new GridAdapter(getActivity(), dataBase));
+            public void onChanged(List<VideoObject> videoObjects) {
+                gridAdapter.setVideoObjects(videoObjects);
+
+                int size = 0;
+                if (videoObjects != null) {
+                    size = videoObjects.size();
+                }
+                Log.i("Gallery VideoObjects", Integer.toString(size));
             }
-        }) .start();
-
-
-
-
+        });
 
         return rootView;
     }

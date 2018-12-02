@@ -1,5 +1,4 @@
 package com.example.aksha.DataBase;
-import android.graphics.Bitmap;
 
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
@@ -12,18 +11,22 @@ dataBase.
 MAKE SURE TO ASK MICHAEL BEFORE MAKING CHANGES!!!!!
  */
 
-@Entity(tableName = "objectGallery")
-public class VideoObjects {
+@Entity(tableName = "video_objects")
+public class VideoObject {
     @PrimaryKey
     @ColumnInfo(name = "video_name")
     @NonNull
-    public String videoName;
+    private String videoName;
 
     @ColumnInfo(name = "move_distance")
-    public Double moveDistance;
+    private Double moveDistance;
 
     @ColumnInfo(name = "video_path")
-    public String videoPath;
+    private String videoPath;
+
+    public VideoObject(String videoName) {
+        this.setVideoName(videoName);
+    }
 
 //    @ColumnInfo(name = "video_thumbnail")
 //    public Bitmap videoThumbnail;
@@ -48,10 +51,10 @@ public class VideoObjects {
     public void setMoveDistance(Double moveDistance){
         this.moveDistance = moveDistance;
     }
-    public String getVideoFile(){
-        return videoPath;
-    }
     public void setVideoPath(String videoPath){
         this.videoPath = videoPath;
+    }
+    public String getVideoPath() {
+        return this.videoPath;
     }
 }

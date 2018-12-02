@@ -11,15 +11,17 @@ import androidx.room.RoomDatabase;
 Creates the database. Should not need to be changed.
  */
 
-@Database(entities = {VideoObjects.class}, version = 1)
+@Database(entities = {VideoObject.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase INSTANCE;
 
-    public abstract videoObjectDao videoObjectDao();
+    public abstract VideoObjectDao videoObjectDao();
 
     public static AppDatabase getAppDatabase(Context context) {
         if (INSTANCE == null) {
-            INSTANCE = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, "objectGallery").build();
+            synchronized (AppDatabase.class) {
+                INSTANCE = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, "measureup").build();
+            }
         }
         return INSTANCE;
     }

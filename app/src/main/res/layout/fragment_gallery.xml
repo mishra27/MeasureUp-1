@@ -20,5 +20,11 @@
         android:listSelector="#e1ecef"
         android:scrollbars="none"
         android:stretchMode="columnWidth"
-        android:verticalSpacing="10dp"/>
+        android:verticalSpacing="10dp">
+    </GridView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/galleryRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,7 +12,10 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.aksha.DataBase.VideoObject;
+
 import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
 
 public class ObjectSaveDialog extends Dialog {
@@ -20,13 +23,19 @@ public class ObjectSaveDialog extends Dialog {
     FrameLayout dialogLayout;
     LinearLayout buttonsLayout;
 
+    private VideoObject videoObject;
+    private VideoObjectViewModel videoObjectViewModel;
+
     private NavController navController;
 
+    private EditText objectName;
     private Button cancelButton;
     private Button dismissButton;
 
-    public ObjectSaveDialog(@NonNull Context context, NavController navController) {
+    public ObjectSaveDialog(@NonNull Context context, VideoObject videoObject, VideoObjectViewModel videoObjectViewModel, NavController navController) {
         this(context);
+        this.videoObject = videoObject;
+        this.videoObjectViewModel = videoObjectViewModel;
         this.navController = navController;
     }
 
@@ -42,7 +51,7 @@ public class ObjectSaveDialog extends Dialog {
         buttonsLayout = view.findViewById(R.id.buttonsLayout);
 
         // set up contents of the dialog
-        EditText objectName = new EditText(context);
+        objectName = new EditText(context);
         objectName.setInputType(InputType.TYPE_CLASS_TEXT);
         objectName.setMaxLines(1);
         objectName.setHint("Enter a title for the object");
@@ -79,6 +88,8 @@ public class ObjectSaveDialog extends Dialog {
                 showOtherDialog();
 
                 // TODO save recorded object to gallery
+                videoObject.setVideoName(objectName.getText().toString());
+                videoObjectViewModel.insert(videoObject);
             }
         });
 

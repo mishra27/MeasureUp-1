@@ -3,6 +3,7 @@ package com.example.aksha.DataBase;
 
 import java.util.List;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -18,23 +19,23 @@ import androidx.room.Query;
 // @delete: to delete a videoObject. i.e. user selects to remove video object or measurement
 // @insert: to insert a new video Object. i.e. new recorded video
 @Dao
-public interface videoObjectDao {
+public interface VideoObjectDao {
 
-    @Query("SELECT * FROM objectGallery")
-    List<VideoObjects> getAll();
+    @Query("SELECT * FROM video_objects")
+    LiveData<List<VideoObject>> getAll();
 
-    @Query("SELECT video_Name, video_path FROM objectGallery")
-    List<VideoObjects> getAllG();
+    @Query("SELECT * FROM video_objects where video_name LIKE :videoName")
+    VideoObject findByName(String videoName);
 
-    @Query("SELECT * FROM objectGallery where video_Name LIKE  :videoName")
-    VideoObjects findByName(String videoName);
-
-    @Query("SELECT COUNT(*) from objectGallery")
+    @Query("SELECT COUNT(*) from video_objects")
     int countVideos();
 
     @Insert
-    void insertAll(VideoObjects... users);
+    void insert(VideoObject videoObject);
+
+    @Insert
+    void insertAll(VideoObject... users);
 
     @Delete
-    void delete(VideoObjects user);
+    void delete(VideoObject user);
 }
