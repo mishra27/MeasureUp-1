@@ -1,5 +1,6 @@
 package com.example.aksha.measureup;
 
+import android.graphics.Bitmap;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
@@ -17,7 +18,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.aksha.DataBase.AppDatabase;
 import com.example.aksha.DataBase.VideoObject;
 import com.example.aksha.videoRecorder.RecordButtonView;
 import com.example.aksha.videoRecorder.VideoRecorder;
@@ -43,10 +43,17 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -58,11 +65,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
-
-import static com.example.aksha.DataBase.AppDatabase.getAppDatabase;
 
 public class RecordScreenFragment extends Fragment implements GLSurfaceView.Renderer {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -93,15 +97,17 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     private static final float[] DEFAULT_COLOR = new float[]{0f, 0f, 0f, 0f};
     private boolean firstTime = false;
     private boolean last = false;
-    private String currentFileName;
-    private String tempFileName;
     private double initial;
 
-    Handler handler;
-    VideoObjectViewModel videoObjectViewModel;
-    VideoObject currentVideoObject;
-    public String currentVideoPath;
-    double currVideoDistance;
+    private Handler handler;
+    private VideoObjectViewModel videoObjectViewModel;
+
+    // data associated with the captured video object
+    private String currentFileName;
+    private VideoObject currentVideoObject;
+    private String currentVideoPath;
+    private String currentThumbnailPath;
+    private double currentVideoDistance;
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -300,6 +306,53 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         GLES20.glViewport(0, 0, width, height);
     }
 
+    public static String saveThumbnail(Mat frame, String parent) {
+        String path = parent + "/thumbnail.jpg";
+        Log.d("FILE NAME ", path);
+        Imgcodecs.imwrite(path, frame);
+
+        return path;
+    }
+
+    private Mat getMat(Bitmap mBitmap) {
+        int w  = surfaceView.getWidth();
+        int h = surfaceView.getHeight();
+        Mat rgb = new Mat(h, w, CvType.CV_8UC4);
+        Utils.bitmapToMat(mBitmap, rgb);
+        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_BGR2RGB);
+
+        return rgb;
+    }
+
+    public static Bitmap savePixels(int x, int y, int w, int h, GL10 gl)
+    {
+        int b[]=new int[w*h];
+        int bt[]=new int[w*h];
+        IntBuffer ib=IntBuffer.wrap(b);
+        ib.position(0);
+        gl.glReadPixels(x, y, w, h, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, ib);
+
+        /*  remember, that OpenGL bitmap is incompatible with
+        Android bitmap and so, some correction need.
+        */
+
+        for(int i=0; i<h; i++)
+        {
+            for(int j=0; j<w; j++)
+            {
+                int pix=b[i*w+j];
+                int pb=(pix>>16)&0xff;
+                int pr=(pix<<16)&0x00ff0000;
+                int pix1=(pix&0xff00ff00) | pr | pb;
+                bt[(h-i-1)*w+j]=pix1;
+            }
+        }
+
+        Bitmap sb = Bitmap.createBitmap(bt, w, h,  Bitmap.Config.ARGB_8888);
+        return sb;
+
+    }
+
     @Override
     public void onDrawFrame(GL10 gl) {
         // draw(gl);
@@ -375,6 +428,12 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 }
 
                 if (firstTime) {
+                    // save thumbnail
+                    Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
+                    Mat newframe = getMat(mBitmap);
+                    currentThumbnailPath = saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName);
+
                     initial = getDistance(camera);
                     firstTime = false;
                 }
@@ -396,13 +455,14 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 }
 
                 //Log.d(TAG, "getDistance(camera) "+ getDistance(camera));
-                currVideoDistance = Math.abs(getDistance(camera) - initial);
+                currentVideoDistance = Math.abs(getDistance(camera) - initial);
                 result.setGravity(Gravity.CENTER);
-                result.setText("Distance Moved " + Double.toString(currVideoDistance) + " cm");
+                result.setText("Distance Moved " + Double.toString(currentVideoDistance) + " cm");
 
                 currentVideoObject = new VideoObject(currentFileName);
                 currentVideoObject.setVideoPath(currentVideoPath);
-                currentVideoObject.setMoveDistance(currVideoDistance);
+                currentVideoObject.setThumbnailPath(currentThumbnailPath);
+                currentVideoObject.setMoveDistance(currentVideoDistance);
                 last = false;
 
                 Message msg = handler.obtainMessage(0, currentVideoObject);
@@ -417,7 +477,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 //
 //                try {
 //                    PrintWriter out = new PrintWriter(distanceFile);
-//                    out.write(Double.toString(currVideoDistance));
+//                    out.write(Double.toString(currentVideoDistance));
 //                    out.close();
 //                } catch (FileNotFoundException e) {
 //                    e.printStackTrace();

@@ -18,6 +18,9 @@ public class VideoObject {
     @NonNull
     private String videoName;
 
+    @ColumnInfo(name = "thumbnail_path")
+    private String thumbnailPath;
+
     @ColumnInfo(name = "move_distance")
     private Double moveDistance;
 
@@ -44,6 +47,12 @@ public class VideoObject {
     }
     public String getVideoName(){
         return videoName;
+    }
+    public void setThumbnailPath(String thumbnailPath) {
+        this.thumbnailPath = thumbnailPath;
+    }
+    public String getThumbnailPath() {
+        return this.thumbnailPath;
     }
     public Double getMoveDistance(){
         return moveDistance;

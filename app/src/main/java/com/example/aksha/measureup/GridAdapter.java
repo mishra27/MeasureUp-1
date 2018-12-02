@@ -1,6 +1,9 @@
 package com.example.aksha.measureup;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,15 +11,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import org.jcodec.api.FrameGrab;
-import org.jcodec.api.JCodecException;
-import org.jcodec.common.AndroidUtil;
-import org.jcodec.common.model.Picture;
-
 import com.example.aksha.DataBase.VideoObject;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 public class GridAdapter extends BaseAdapter {
@@ -57,24 +53,21 @@ public class GridAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
+        VideoObject videoObject = videoObjects.get(position);
 
         View objectView;
         if (convertView == null) {
             objectView = inflater.inflate(R.layout.gallery_object_layout, null);
 
             TextView text = objectView.findViewById(R.id.textView);
-            text.setText(videoObjects.get(position).getVideoName());
+            text.setText(videoObject.getVideoName());
 
             ImageView img = objectView.findViewById(R.id.imageView);
 
-            try {
-                Picture thumbnail = FrameGrab.getFrameFromFile(new File(videoObjects.get(position).getVideoPath()), 1);
-                img.setImageBitmap(AndroidUtil.toBitmap(thumbnail));
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JCodecException e) {
-                e.printStackTrace();
-            }
+            Log.i("path: ", videoObject.getThumbnailPath());
+
+            Bitmap thumbnail = BitmapFactory.decodeFile(videoObject.getThumbnailPath());
+            img.setImageBitmap(thumbnail);
         } else {
             objectView = (View) convertView;
         }
