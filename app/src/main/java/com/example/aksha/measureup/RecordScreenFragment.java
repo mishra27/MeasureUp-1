@@ -28,6 +28,7 @@ import com.example.common.rendering.PointCloudRenderer;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
+import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Pose;
@@ -185,6 +186,10 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
                 // Create the session.
                 session = new Session(/* context= */ this.getContext());
+                Config config = new Config(session);
+                config.setFocusMode(Config.FocusMode.AUTO);
+                session.configure(config);
+
 
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
