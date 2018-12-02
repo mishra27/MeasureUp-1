@@ -1,7 +1,8 @@
 package com.example.aksha.measureup;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
-import android.media.MediaMetadataRetriever;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import org.opencv.android.Utils;
@@ -26,9 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static android.media.MediaMetadataRetriever.OPTION_CLOSEST;
-
-public class VideoProcessor {
+public class VideoProcessor extends Activity {
     //
     private File videoFile_;
 
@@ -62,7 +61,7 @@ public class VideoProcessor {
 
 
     private int numOfFrame_; // run frameGrab first
-    MediaMetadataRetriever mmr_;
+   // MediaMetadataRetriever mmr_;
 
     public VideoProcessor(File videoFile) {
 
@@ -89,8 +88,8 @@ public class VideoProcessor {
         secondCorners_ = new MatOfPoint();
 
 
-        mmr_ = new MediaMetadataRetriever();
-        mmr_.setDataSource(videoFile.getAbsolutePath());
+ //       mmr_ = new MediaMetadataRetriever();
+//        mmr_.setDataSource(videoFile.getAbsolutePath());
 
         // params for ShiTomasi corner detection
         feature_params.put("maxCorners", 10.0);
@@ -143,9 +142,9 @@ public class VideoProcessor {
             Log.d("THATY video : ", String.valueOf(aveY));
             Mat prev = frames_.get(i);
             Imgproc.circle(prev, new Point(aveX, aveY), 20, new Scalar(0, 0, 255), 5);
-            if (i%10 == 0) {
-                saveFrame(i+100, prev );
-            }
+
+                saveFrame(i+1000, prev );
+
 
         }
     }
@@ -202,80 +201,101 @@ public class VideoProcessor {
 
 
     public void grabFrames(boolean first) {
-        frameGrabber(50000, frames_, first);
+        frameGrabber( frames_, first);
     }
 
-    public void frameGrabber(long step, ArrayList<Mat> frames, boolean first) {
+    public void frameGrabber( ArrayList<Mat> frames, boolean first) {
 
         // grab the first frame info to construct Mat
-        Bitmap firstFrame = mmr_.getFrameAtTime(0);
-        int width = firstFrame.getWidth();
-        int height = firstFrame.getHeight();
+//        int width = findViewById(R.id.surfaceview).getWidth();
+//        int height = findViewById(R.id.surfaceview).getHeight();
+//
+//        WindowManager wm =  (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+//        Display display = wm.getDefaultDisplay();
+//        int width = display.getWidth();  // deprecated
+//        int height = display.getHeight();  // deprecated
+      //  String videoLength = mmr_.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
 
-        String videoLength = mmr_.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-
-        long totalLength = Integer.valueOf(videoLength) * 1000;
+       // long totalLength = Integer.valueOf(videoLength) * 1000;
 
         //long videoLengthUs = videoFile.length(); // TODO need to test the unit
         numOfFrame_ = 0;
 
-        Log.d("HERE video : ", String.valueOf(totalLength));
+        //Log.d("HERE video : ", String.valueOf(totalLength));
 
         // loop over to grab frame every timeLapseUs
 
         if (first == true) {
-            Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
-            grabFrameAsMat(0, newFrame);
+
+            File f = new  File(videoFile_.getParent()  + "/" + 0 + ".jpg");
+            Bitmap currentFrame = BitmapFactory.decodeFile(f.getAbsolutePath());
+
+            int height =  currentFrame.getHeight();
+            int width =  currentFrame.getWidth();
+
+            Mat newFrame = new Mat( height, width  , CvType.CV_8UC1);
+
+            frameHeight_ = height;
+            frameWidth_ = width;
+
+            Mat rgb = new Mat(height, width, CvType.CV_8UC4);
+            Utils.bitmapToMat(currentFrame, rgb);
+            Imgproc.cvtColor(rgb, newFrame, Imgproc.COLOR_RGB2GRAY);
             firstFrame_ = newFrame;
-            saveFrame(0, newFrame);
+
             return;
         }
 
-        for (long tl=0; tl<(totalLength - 34000); tl=tl+step) {
+        int i = 0;
+
+        File imgFile = new  File(videoFile_.getParent()  + "/" + i + ".jpg");
+
+        while(imgFile.exists()){
+
+            Bitmap currentFrame = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+            int height =  currentFrame.getHeight();
+            int width =  currentFrame.getWidth();
             Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
-            grabFrameAsMat(tl, newFrame);
+
+            frameHeight_ = height;
+            frameWidth_ = width;
+
+            Mat rgb = new Mat(height, width, CvType.CV_8UC4);
+            Utils.bitmapToMat(currentFrame, rgb);
+            Imgproc.cvtColor(rgb, newFrame, Imgproc.COLOR_RGB2GRAY);
+
+            Log.d("Here we go", "printer");
             frames.add(newFrame);
             numOfFrame_++;
+            i = i+4;
+
+            imgFile = new  File(videoFile_.getParent()  + "/" + i + ".jpg");
+
         }
+
         firstFrame_ = frames.get(0);
         lastFrame_ = frames.get(frames.size()-1);
         Log.d("HERE size : ", String.valueOf(frames.size()-1));
+
         saveFrame(0, firstFrame_);
 
-//        Mat gray = new Mat(height, width, CvType.CV_32S);
-//        gray.put(0, 0, graycale);
-//        String path = Environment.getExternalStoragePublicDirectory(
-//                Environment.DIRECTORY_PICTURES) + "/MeasureUp/";
-//        Imgcodecs.imwrite(path + "/gray.jpg", gray);
     }
+//
+//    public void grabFrameAsMat (long step, Mat frame) {
+//
+//
+//        Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
+//        int width = currentFrame.getWidth();
+//        int height = currentFrame.getHeight();
+//        frameHeight_ = height;
+//        frameWidth_ = width;
+//
+//        Mat rgb = new Mat(height, width, CvType.CV_8UC4);
+//        Utils.bitmapToMat(currentFrame, rgb);
+//        Imgproc.cvtColor(rgb, frame, Imgproc.COLOR_RGB2GRAY);
+//
+//    }
 
-    public void grabFrameAsMat (long step, Mat frame) {
-
-        Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
-        int width = currentFrame.getWidth();
-        int height = currentFrame.getHeight();
-        frameHeight_ = height;
-        frameWidth_ = width;
-//        int[] rawPixels = new int[width*height];
-//        currentFrame.getPixels(rawPixels, 0, width, 0, 0, width, height);
-//        int[] R = new int[rawPixels.length];
-//        int[] G = new int[rawPixels.length];
-//        int[] B = new int[rawPixels.length];
-//        int[] graycale = new int[rawPixels.length];
-//        for (int i=0; i<rawPixels.length; i++) {
-//            R[i] = (rawPixels[i] >> 16) & 0xff;
-//            G[i] = (rawPixels[i] >> 8) & 0xff;
-//            B[i] = rawPixels[i] & 0xff;
-//            graycale[i] = (R[i] + G[i] + B[i])/3;
-//        }
-//        Mat U32gray = new Mat(height, width, CvType.CV_32S);
-//        U32gray.put(0, 0, graycale);
-//        U32gray.convertTo(frame, CvType.CV_8UC1);
-        Mat rgb = new Mat(height, width, CvType.CV_8UC4);
-        Utils.bitmapToMat(currentFrame, rgb);
-        Imgproc.cvtColor(rgb, frame, Imgproc.COLOR_RGB2GRAY);
-
-    }
 
     public void findInitFeatures(Mat inputFrame, MatOfPoint corners, Point point, MatOfPoint2f initPts) {
         double x = point.x;

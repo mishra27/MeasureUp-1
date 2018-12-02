@@ -1,5 +1,6 @@
 package com.example.aksha.measureup;
 
+import android.graphics.Bitmap;
 import android.opengl.EGL14;
 import android.opengl.EGLDisplay;
 import android.opengl.GLES20;
@@ -17,7 +18,6 @@ import android.widget.Toast;
 import com.example.aksha.DataBase.AppDatabase;
 import com.example.aksha.DataBase.VideoObjects;
 import com.example.aksha.videoRecorder.RecordButtonView;
-import com.example.aksha.videoRecorder.VideoRecorder;
 import com.example.common.helpers.CameraPermissionHelper;
 import com.example.common.helpers.DisplayRotationHelper;
 import com.example.common.helpers.SnackbarHelper;
@@ -28,11 +28,11 @@ import com.example.common.rendering.PointCloudRenderer;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
+import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
-import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
@@ -40,10 +40,17 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -65,7 +72,8 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
     // Rendering. The Renderers are created here, and initialized when the GL surface is created.
     private GLSurfaceView surfaceView;
-    private VideoRecorder mRecorder;
+    //private VideoRecorder mRecorder;
+    boolean startRecording;
     private VideoProcessor videoProcessor;
     private android.opengl.EGLConfig mAndroidEGLConfig;
 
@@ -94,7 +102,11 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
     public AppDatabase db;
     public String currentVideoPath;
-    double currVideoDistance;
+    public String parentPath;
+    public double currVideoDistance;
+
+    private ArrayList<Frame> frameList = new ArrayList<>();
+
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -158,6 +170,10 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         view.findViewById(R.id.imageButton2).setOnClickListener(Navigation.createNavigateOnClickListener(R.id.action_recordScreenFragment_to_galleryFragment, null));
         db = getAppDatabase(getContext());
         installRequested = false;
+
+
+        result = this.getView().findViewById(R.id.textView);
+
     }
 
     @Override
@@ -185,6 +201,10 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
                 // Create the session.
                 session = new Session(/* context= */ this.getContext());
+
+                Config config = new Config(session);
+                config.setFocusMode(Config.FocusMode.AUTO);
+                session.configure(config);
 
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
@@ -268,6 +288,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         EGL14.eglChooseConfig(androidDisplay, attribs, 0, myConfig, 0, 1, v, 1);
         this.mAndroidEGLConfig = myConfig[0];
 
+
         // Prepare the rendering objects. This involves reading shaders, so may throw an IOException.
         try {
             // Create the texture and pass it to ARCore session to be filled during update().
@@ -287,8 +308,9 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         GLES20.glViewport(0, 0, width, height);
     }
 
+    int i = 0;
     @Override
-    public void onDrawFrame(GL10 gl) {
+    public void onDrawFrame( GL10 gl) {
         // draw(gl);
         // GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
@@ -306,6 +328,8 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
             session.setCameraTextureName(backgroundRenderer.getTextureId());
 
+            final int w  = surfaceView.getWidth();
+            final int h = surfaceView.getHeight();
             // Obtain the current frame from ARSession. When the configuration is set to
             // UpdateMode.BLOCKING (it is by default), this will throttle the rendering to the
             // camera framerate.
@@ -317,17 +341,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
             // Draw background.
             backgroundRenderer.draw(frame);
-
-            // Obtain the current frame from ARSession. When the
-            //configuration is set to
-            // UpdateMode.BLOCKING (it is by default), this will
-            // throttle the rendering to the camera framerate.
-//                Frame frame = session.update();
-//
-//                Camera camera = frame.getCamera();
-
-            // Handle taps. Handling only one tap per frame, as taps are
-            // usually low frequency compared to frame rate.
 
 
             // Get projection matrix.
@@ -342,24 +355,27 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             final float lightIntensity = frame.getLightEstimate().getPixelIntensity();
 
             // Visualize tracked points.
-            PointCloud pointCloud = frame.acquirePointCloud();
+            PointCloud
+                    pointCloud = frame.acquirePointCloud();
             pointCloudRenderer.update(pointCloud);
 
 
-            draw(frame,camera.getTrackingState() == TrackingState.PAUSED,
-                    viewmtx, projmtx, camera.getDisplayOrientedPose(),lightIntensity);
+            
 
-            if (mRecorder!= null && mRecorder.isRecording()) {
-                VideoRecorder.CaptureContext ctx = mRecorder.startCapture();
-                if (ctx != null) {
-                    // draw again
-                    draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
-                            viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
+            if (startRecording == true) {
 
-                    // restore the context
-                    mRecorder.stopCapture(ctx, frame.getTimestamp());
 
-                }
+                    if(i%4 == 0) {
+
+                                Bitmap mBitmap = SavePixels(0, 0, w, h, gl);
+                                Mat newframe = getMat(mBitmap);
+                                saveFrame(i, newframe);
+
+
+                    }
+
+                    i++;
+
 
                 if(firstTime){
                     initial = getDistance(camera);
@@ -368,8 +384,13 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
             }
 
-            else if (mRecorder!= null && !mRecorder.isRecording() && last){
+            else if (startRecording == false && last){
 
+//                Bitmap mBitmap = SavePixels(0, 0, w, h, gl);
+//                Mat newframe = getMat(mBitmap);
+//                saveFrame(i, newframe);
+
+                i = 0;
 
 
                 double distance = Math.abs(getDistance(camera) - initial);
@@ -409,25 +430,10 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 //                        } catch (JCodecException e) {
 //                            e.printStackTrace();
 //                        }
-                        db.videoObjectDao().insertAll(tempObject);
+//                        db.videoObjectDao().insertAll(tempObject);
                     }
                 }) .start();
 
-//                File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
-//                        Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_distance.txt");
-//
-//
-//
-//
-//                try {
-//                    PrintWriter out = new PrintWriter(distanceFile);
-//                    out.write(Double.toString(currVideoDistance));
-//                    out.close();
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-
-                // session.update();
             }
 
             // Application is responsible for releasing the point cloud resources after
@@ -438,6 +444,16 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             // Avoid crashing the application due to unhandled exceptions.
             Log.e(TAG, "Exception on the OpenGL thread", t);
         }
+    }
+
+    private Mat getMat(Bitmap mBitmap) {
+        int w  = surfaceView.getWidth();
+        int h = surfaceView.getHeight();
+        Mat newframe = new Mat(h, w, CvType.CV_8UC1);
+        Mat rgb = new Mat(h, w, CvType.CV_8UC4);
+        Utils.bitmapToMat(mBitmap, rgb);
+        Imgproc.cvtColor(rgb, newframe, Imgproc.COLOR_RGB2GRAY);
+        return newframe;
     }
 
     private double getDistance(Camera camera) {
@@ -459,6 +475,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         backgroundRenderer.draw(frame);
 
         // If not tracking, don't draw 3d objects.
+
         if (paused) {
             return;
         }
@@ -474,13 +491,16 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     public void clickToggleRecording(View view) {
         Log.d(TAG, "clickToggleRecording");
         // mRecorder = null;
-        if (mRecorder == null || !mRecorder.isRecording()) {
+
+        if (startRecording == false) {
+
             Log.d(TAG, "HERE");
             currentFileName = "Object-" + Long.toHexString(System.currentTimeMillis());
             File videoFile = new File(Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_video.mp4");
             File dir = videoFile.getParentFile();
-            currentVideoPath = videoFile.getPath();
+            currentVideoPath = videoFile.getAbsolutePath();
+            parentPath = videoFile.getParent();
 
             try (PrintWriter out = new PrintWriter(Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_PICTURES) + "/MeasureUp/filePath.txt")){
@@ -493,14 +513,8 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 dir.mkdirs();
             }
 
-            try {
-                mRecorder = new VideoRecorder(surfaceView.getWidth(),
-                        surfaceView.getHeight(),
-                        VideoRecorder.DEFAULT_BITRATE, videoFile);
-                mRecorder.setEglConfig(mAndroidEGLConfig);
-            } catch (IOException e) {
-                Log.e(TAG,"Exception starting recording", e);
-            }
+           startRecording = true;
+            return;
         }
         new Thread(new Runnable() {
             @Override
@@ -509,16 +523,21 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 Log.d("count", Integer.toString(tempCount));
             }
         }) .start();
-        mRecorder.toggleRecording();
+
+        if(startRecording == true)
+            startRecording = false;
+
         updateControls();
+//        Config config = new Config(session);
+//        config.setFocusMode(Config.FocusMode.AUTO);
+//        session.configure(config);
     }
 
     private void updateControls() {
-        boolean recording = mRecorder != null && mRecorder.isRecording();
+        boolean recording = startRecording == true && firstTime;
 
         RecordButtonView recordButtonView = this.getView().findViewById(R.id.recordButtonView);
         recordButtonView.setRecording(recording);
-        result = this.getView().findViewById(R.id.textView);
         result.setText("");
 
         if (!recording) {
@@ -527,6 +546,44 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         } else {
             firstTime = true;
         }
+    }
+
+
+
+    public void saveFrame(int index, Mat frame) {
+        String path = parentPath;
+        Log.d("FILE NAME ", path);
+        String fileIndex = String.valueOf(index);
+        Imgcodecs.imwrite(path + "/" + fileIndex + ".jpg", frame);
+    }
+
+    public static Bitmap SavePixels(int x, int y, int w, int h, GL10 gl)
+    {
+        int b[]=new int[w*h];
+        int bt[]=new int[w*h];
+        IntBuffer ib=IntBuffer.wrap(b);
+        ib.position(0);
+        gl.glReadPixels(x, y, w, h, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, ib);
+
+        /*  remember, that OpenGL bitmap is incompatible with
+        Android bitmap and so, some correction need.
+        */
+
+        for(int i=0; i<h; i++)
+        {
+            for(int j=0; j<w; j++)
+            {
+                int pix=b[i*w+j];
+                int pb=(pix>>16)&0xff;
+                int pr=(pix<<16)&0x00ff0000;
+                int pix1=(pix&0xff00ff00) | pr | pb;
+                bt[(h-i-1)*w+j]=pix1;
+            }
+        }
+
+        Bitmap sb=Bitmap.createBitmap(bt, w, h,  Bitmap.Config.ARGB_8888);
+        return sb;
+
     }
 
 
