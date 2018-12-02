@@ -33,6 +33,7 @@ import com.google.ar.core.Frame;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
+import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
@@ -360,16 +361,17 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             pointCloudRenderer.update(pointCloud);
 
 
-            
+             draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
+                            viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
 
             if (startRecording == true) {
 
 
                     if(i%4 == 0) {
 
-                                Bitmap mBitmap = SavePixels(0, 0, w, h, gl);
-                                Mat newframe = getMat(mBitmap);
-                                saveFrame(i, newframe);
+//                                Bitmap mBitmap = SavePixels(0, 0, w, h, gl);
+//                                Mat newframe = getMat(mBitmap);
+//                                saveFrame(i, newframe);
 
 
                     }
@@ -389,7 +391,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 //                Bitmap mBitmap = SavePixels(0, 0, w, h, gl);
 //                Mat newframe = getMat(mBitmap);
 //                saveFrame(i, newframe);
-
                 i = 0;
 
 
