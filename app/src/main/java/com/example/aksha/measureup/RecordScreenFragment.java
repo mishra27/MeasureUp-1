@@ -31,9 +31,7 @@ import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
 import com.google.ar.core.PointCloud;
-import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
-import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
@@ -107,6 +105,9 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     public double currVideoDistance;
 
     private ArrayList<Frame> frameList = new ArrayList<>();
+    private int first = 0;
+    private int lastTime = 0;
+
 
 
     // Anchors created from taps used for object placing with a given color.
@@ -315,6 +316,8 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         // draw(gl);
         // GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+
         if (session == null) {
             return;
         }
@@ -338,7 +341,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             Camera camera = frame.getCamera();
 
             // Handle one tap per frame.
-            handleTap(frame, camera);
+            //handleTap(frame, camera);
 
             // Draw background.
             backgroundRenderer.draw(frame);
@@ -356,20 +359,24 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             final float lightIntensity = frame.getLightEstimate().getPixelIntensity();
 
             // Visualize tracked points.
-            PointCloud
-                    pointCloud = frame.acquirePointCloud();
-            pointCloudRenderer.update(pointCloud);
+            PointCloud  pointCloud = frame.acquirePointCloud();
+            this.pointCloudRenderer.update(pointCloud);
 
 
-             draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
-                            viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
+            pointCloudRenderer.draw(viewmtx, projmtx);
+//             draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
+//                            viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
 
-            if (startRecording == true) {
+            Log.d("distance ", String.valueOf(getDistance(camera)));
 
 
-                    if(i%4 == 0) {
+            if (startRecording == true ) {
 
-//                                Bitmap mBitmap = SavePixels(0, 0, w, h, gl);
+
+                    if(i%8 == 0) {
+
+
+                                Bitmap mBitmap = SavePixels(0, 0, w, h, gl);
 //                                Mat newframe = getMat(mBitmap);
 //                                saveFrame(i, newframe);
 
@@ -379,20 +386,25 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                     i++;
 
 
-                if(firstTime){
+                if(first <1){
                     initial = getDistance(camera);
-                    firstTime = false;
+//                    result.setText("");
+                  first++;
+                  lastTime ++;
                 }
 
             }
 
-            else if (startRecording == false && last){
+
+
+            else if (startRecording == false && lastTime>0){
 
 //                Bitmap mBitmap = SavePixels(0, 0, w, h, gl);
 //                Mat newframe = getMat(mBitmap);
 //                saveFrame(i, newframe);
                 i = 0;
-
+                first=0;
+                lastTime = 0;
 
                 double distance = Math.abs(getDistance(camera) - initial);
                 result.setGravity(Gravity.CENTER);
@@ -464,25 +476,25 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 Math.pow((translation[2]), 2)))* 100.0) / 100.0)* 100;
     }
 
-    private void draw(Frame frame, boolean paused,
-                      float[] viewMatrix, float[] projectionMatrix,
-                      Pose displayOrientedPose, float lightIntensity) {
-
-        // Clear screen to notify driver it should not load
-        // any pixels from previous frame.
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
-        // Draw background.
-        backgroundRenderer.draw(frame);
-
-        // If not tracking, don't draw 3d objects.
-
-        if (paused) {
-            return;
-        }
-
-        pointCloudRenderer.draw(viewMatrix, projectionMatrix);
-    }
+//    private void draw(Frame frame, boolean paused,
+//                      float[] viewMatrix, float[] projectionMatrix,
+//                      Pose displayOrientedPose, float lightIntensity) {
+//
+//        // Clear screen to notify driver it should not load
+//        // any pixels from previous frame.
+//        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+//
+//        // Draw background.
+//        backgroundRenderer.draw(frame);
+//
+//        // If not tracking, don't draw 3d objects.
+//
+//        if (paused) {
+//            return;
+//        }
+//
+//        pointCloudRenderer.draw(viewMatrix, projectionMatrix);
+//    }
 
     // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
     private void handleTap(Frame frame, Camera camera) {
@@ -539,10 +551,11 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
         RecordButtonView recordButtonView = this.getView().findViewById(R.id.recordButtonView);
         recordButtonView.setRecording(recording);
-        result.setText("");
+        //result.setText("");
 
         if (!recording) {
             last = true;
+            firstTime = false;
             new ObjectSaveDialog(this.getContext(), Navigation.findNavController(this.getActivity(), R.id.fragment)).show();
         } else {
             firstTime = true;
