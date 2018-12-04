@@ -1,17 +1,15 @@
 package com.example.aksha.measureup;
 
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.RelativeLayout;
+import android.view.Window;
+import android.view.WindowManager;
 
-import com.example.common.helpers.TransparentNavigationHelper;
+import com.example.aksha.DataBase.VideoObject;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 /**
@@ -21,12 +19,18 @@ import androidx.navigation.ui.NavigationUI;
  */
 public class MainActivity extends AppCompatActivity {
     NavController navController;
-    private RelativeLayout mContainer;
+
+    VideoObjectViewModel videoObjectViewModel;
+
+    // Load OpenCv native library
+    static {System.loadLibrary("opencv_java3");}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        videoObjectViewModel = ViewModelProviders.of(this).get(VideoObjectViewModel.class);
 
         navController = Navigation.findNavController(this, R.id.fragment);
         NavigationUI.setupActionBarWithNavController(this, navController);
@@ -35,6 +39,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            // https://developer.android.com/training/system-ui/immersive.html#sticky
+            Window w = this.getWindow();
+            w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        }
     }
 
     @Override
