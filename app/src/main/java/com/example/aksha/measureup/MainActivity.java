@@ -4,7 +4,10 @@ import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.example.aksha.DataBase.VideoObject;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
@@ -17,7 +20,9 @@ import androidx.navigation.ui.NavigationUI;
 public class MainActivity extends AppCompatActivity {
     NavController navController;
 
-    //Load OpenCv native library
+    VideoObjectViewModel videoObjectViewModel;
+
+    // Load OpenCv native library
     static {System.loadLibrary("opencv_java3");}
 
     @Override
@@ -25,10 +30,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        videoObjectViewModel = ViewModelProviders.of(this).get(VideoObjectViewModel.class);
+
         navController = Navigation.findNavController(this, R.id.fragment);
         NavigationUI.setupActionBarWithNavController(this, navController);
-
-
     }
 
     @Override
@@ -39,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
             Window w = this.getWindow();
             w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
             this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-
         }
     }
 

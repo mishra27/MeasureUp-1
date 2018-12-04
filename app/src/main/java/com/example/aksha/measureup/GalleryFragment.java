@@ -39,7 +39,7 @@ public class GalleryFragment extends Fragment {
 
         gridView.setAdapter(gridAdapter);
 
-        videoObjectViewModel = ViewModelProviders.of(this).get(VideoObjectViewModel.class);
+        videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
         videoObjectViewModel.getAllVideoObjects().observe(this, new Observer<List<VideoObject>>() {
             @Override
             public void onChanged(List<VideoObject> videoObjects) {

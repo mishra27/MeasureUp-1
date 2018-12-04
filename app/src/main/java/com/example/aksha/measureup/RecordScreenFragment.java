@@ -148,6 +148,13 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -175,8 +182,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         view.findViewById(R.id.imageButton).setOnClickListener(Navigation.createNavigateOnClickListener(R.id.action_recordScreenFragment_to_settingsFragment, null));
         view.findViewById(R.id.imageButton2).setOnClickListener(Navigation.createNavigateOnClickListener(R.id.action_recordScreenFragment_to_galleryFragment, null));
         installRequested = false;
-
-        videoObjectViewModel = ViewModelProviders.of(this).get(VideoObjectViewModel.class);
     }
 
     @Override
@@ -564,6 +569,8 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     }
 
     private void onVideoCaptured() {
+        videoObjectViewModel.setCurrentVideoObject(currentVideoObject);
+
         new ObjectSaveDialog(this.getContext(), currentVideoObject, videoObjectViewModel,
                 Navigation.findNavController(this.getActivity(), R.id.fragment)).show();
     }
