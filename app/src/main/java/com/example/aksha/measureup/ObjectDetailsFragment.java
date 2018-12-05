@@ -37,7 +37,7 @@ public class ObjectDetailsFragment extends Fragment {
             public void onChanged(VideoObject videoObject) {
                 TextView text = rootView.findViewById(R.id.name);
                 ImageView thumbnail = rootView.findViewById(R.id.thumbnail);
-//                ListView measurements = rootView.findViewById(R.id.measurementList);
+                ListView measurements = rootView.findViewById(R.id.measurementList);
 
                 text.setText(videoObject.getVideoName());
                 thumbnail.setImageBitmap(BitmapFactory.decodeFile(videoObject.getThumbnailPath()));
