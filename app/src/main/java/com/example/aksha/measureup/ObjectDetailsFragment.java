@@ -3,6 +3,7 @@ package com.example.aksha.measureup;
 import android.os.Bundle;
 
 import com.example.aksha.db.models.VideoObject;
+import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;

@@ -1,4 +1,4 @@
-package com.example.aksha.measureup;
+package com.example.aksha.db.repositories;
 
 import android.app.Application;
 import android.os.AsyncTask;
@@ -29,14 +29,14 @@ public class VideoObjectRepository {
         }
     }
 
-    VideoObjectRepository(Application application) {
+    public VideoObjectRepository(Application application) {
         AppDatabase db = AppDatabase.getAppDatabase(application);
 
         videoObjectDao = db.videoObjectDao();
         allVideoObjects = videoObjectDao.getAll();
     }
 
-    LiveData<List<VideoObject>> getAllVideoObjects() {
+    public LiveData<List<VideoObject>> getAllVideoObjects() {
         return allVideoObjects;
     }
 

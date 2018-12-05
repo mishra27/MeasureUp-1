@@ -1,8 +1,9 @@
-package com.example.aksha.measureup;
+package com.example.aksha.db.viewmodels;
 
 import android.app.Application;
 
 import com.example.aksha.db.models.VideoObject;
+import com.example.aksha.db.repositories.VideoObjectRepository;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class VideoObjectViewModel extends AndroidViewModel {
         return currentVideoObject;
     }
 
-    LiveData<List<VideoObject>> getAllVideoObjects() {
+    public LiveData<List<VideoObject>> getAllVideoObjects() {
         return videoObjects;
     }
 

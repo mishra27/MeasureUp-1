@@ -9,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.example.aksha.db.models.VideoObject;
+import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 
 import java.util.List;
 
@@ -61,18 +62,7 @@ public class GalleryFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 videoObjectViewModel.setCurrentVideoObject(videoObjectViewModel.getAllVideoObjects().getValue().get(position));
 
-//                new ObjectDetailsDialog(getContext(), Navigation.findNavController(getActivity(), R.id.fragment)).show();
-//                Fragment fragment = new ObjectDetailsFragment();
-//                FragmentManager fm = getSupportFragmentManager();
-//                FragmentTransaction transaction = fm.beginTransaction();
-//                transaction.replace(R.id.objectThisSucks,fragment);
-//                transaction.commit();
-
-
-
-
                 navController.navigate(R.id.action_galleryFragment_to_objectDetailsFragment);
-//                //Fragment fragment = new ObjectDetailsFragment();
             }
         });
         return rootView;

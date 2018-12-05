@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.example.aksha.db.models.VideoObject;
+import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 
 import org.opencv.core.Point;
 

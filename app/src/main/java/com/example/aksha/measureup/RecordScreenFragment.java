@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.aksha.db.models.VideoObject;
+import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 import com.example.aksha.videoRecorder.RecordButtonView;
 import com.example.aksha.videoRecorder.VideoRecorder;
 import com.example.common.helpers.CameraPermissionHelper;

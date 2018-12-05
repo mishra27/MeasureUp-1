@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.aksha.db.models.VideoObject;
+import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
