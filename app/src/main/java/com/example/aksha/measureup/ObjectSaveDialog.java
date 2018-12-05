@@ -12,10 +12,9 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.aksha.DataBase.VideoObject;
+import com.example.aksha.db.models.VideoObject;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
 
 public class ObjectSaveDialog extends Dialog {
@@ -88,7 +87,7 @@ public class ObjectSaveDialog extends Dialog {
                 showOtherDialog();
 
                 // TODO save recorded object to gallery
-                videoObject.setVideoName(objectName.getText().toString());
+                videoObject.setName(objectName.getText().toString());
                 videoObjectViewModel.insert(videoObject);
             }
         });

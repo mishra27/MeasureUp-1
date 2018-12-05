@@ -3,9 +3,9 @@ package com.example.aksha.measureup;
 import android.app.Application;
 import android.os.AsyncTask;
 
-import com.example.aksha.DataBase.AppDatabase;
-import com.example.aksha.DataBase.VideoObjectDao;
-import com.example.aksha.DataBase.VideoObject;
+import com.example.aksha.db.AppDatabase;
+import com.example.aksha.db.dao.VideoObjectDao;
+import com.example.aksha.db.models.VideoObject;
 
 import java.util.List;
 

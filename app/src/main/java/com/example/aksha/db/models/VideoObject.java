@@ -1,22 +1,19 @@
-package com.example.aksha.DataBase;
+package com.example.aksha.db.models;
 
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
-/*
-this class is used to create the structure of the table. Do not update without fully understanding
-dataBase.
-
-MAKE SURE TO ASK MICHAEL BEFORE MAKING CHANGES!!!!!
- */
 
 @Entity(tableName = "video_objects")
 public class VideoObject {
-    @PrimaryKey
-    @ColumnInfo(name = "video_name")
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
+    private Integer id;
+
+    @ColumnInfo(name = "name")
     @NonNull
-    private String videoName;
+    private String name;
 
     @ColumnInfo(name = "thumbnail_path")
     private String thumbnailPath;
@@ -27,26 +24,21 @@ public class VideoObject {
     @ColumnInfo(name = "video_path")
     private String videoPath;
 
-    public VideoObject(String videoName) {
-        this.setVideoName(videoName);
+    public VideoObject(String name) {
+        this.setName(name);
     }
 
-//    @ColumnInfo(name = "video_thumbnail")
-//    public Bitmap videoThumbnail;
-//
-//
-//    public void setVideoThumbnail(Bitmap Thumbnail){
-//        this.videoThumbnail = Thumbnail;
-//    }
-//    public Bitmap getVideoThumbnail(){
-//
-//        return videoThumbnail;
-//    }
-    public void setVideoName(String videoName){
-        this.videoName = videoName;
+    public void setId(Integer id) {
+        this.id = id;
     }
-    public String getVideoName(){
-        return videoName;
+    public Integer getId() {
+        return this.id;
+    }
+    public void setName(String name){
+        this.name = name;
+    }
+    public String getName(){
+        return name;
     }
     public void setThumbnailPath(String thumbnailPath) {
         this.thumbnailPath = thumbnailPath;

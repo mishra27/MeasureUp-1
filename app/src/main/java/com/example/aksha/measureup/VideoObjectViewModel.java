@@ -2,7 +2,7 @@ package com.example.aksha.measureup;
 
 import android.app.Application;
 
-import com.example.aksha.DataBase.VideoObject;
+import com.example.aksha.db.models.VideoObject;
 
 import java.util.List;
 
