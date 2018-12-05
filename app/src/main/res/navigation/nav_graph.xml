@@ -42,8 +42,49 @@
             app:destination="@id/pointSelectionFragment" />
     </fragment>
     <fragment
+        android:id="@+id/setupFragment"
+        android:name="com.example.aksha.passwordAndSecurityQuestion.SetupFragment"
+        android:label="Setup"
+        tools:layout="@layout/activity_setup">
+        <action
+            android:id="@+id/action_SetupFragment_to_recordScreenFragment"
+            app:destination="@+id/recordScreenFragment"
+            app:enterAnim="@anim/nav_default_pop_enter_anim" />
+        <action
+            android:id="@+id/action_SetupFragment_to_createPasswordFragment"
+            app:destination="@+id/createPasswordFragment"
+            app:enterAnim="@anim/nav_default_pop_enter_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/createPasswordFragment"
+        android:name="com.example.aksha.passwordAndSecurityQuestion.CreatePasswordFragment"
+        android:label="Create-Password"
+        tools:layout="@layout/fragment_create_password">
+        <action
+            android:id="@+id/action_createPasswordFragment_to_securityQuestionFragment"
+            app:destination="@id/securityQuestionFragment"
+            app:enterAnim="@anim/nav_default_pop_enter_anim" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/securityQuestionFragment"
+        android:name="com.example.aksha.passwordAndSecurityQuestion.SecurityQuestionFragment"
+        android:label="Create-Security-Question"
+        tools:layout="@layout/fragment_create_password">
+
+    </fragment>
+
+
+    <fragment
         android:id="@+id/pointSelectionFragment"
         android:name="com.example.aksha.measureup.PointSelectionFragment"
         android:label="Point Selection"
         tools:layout="@layout/fragment_point_selection" ></fragment>
+
+
+
+
+
+
 </navigation>
