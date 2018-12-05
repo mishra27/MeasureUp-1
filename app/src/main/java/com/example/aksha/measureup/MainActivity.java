@@ -1,5 +1,6 @@
 package com.example.aksha.measureup;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onSupportNavigateUp() {
         return navController.navigateUp() || super.onSupportNavigateUp();
+    }
+    public interface OnFragmentInteractionListener{
+        public void onFragmentInteraction(Uri uri);
     }
 }
 
