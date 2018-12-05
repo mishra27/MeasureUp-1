@@ -35,7 +35,7 @@ public class RecordScreenFragmentTest {
 
         // grab current amount of directories
         File measureUpDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES) + "/MeasureUp");
+                Environment.DIRECTORY_PICTURES) + "/.MeasureUp");
         int files = 0;
         if (measureUpDir.exists()) {
             if (measureUpDir.list() != null) {

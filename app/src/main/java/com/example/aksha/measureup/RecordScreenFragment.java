@@ -437,7 +437,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                     Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
                     Mat newframe = getMat(mBitmap);
                     currentThumbnailPath = saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName);
+                            Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName);
 
                     initial = getDistance(camera);
                     firstTime = false;
@@ -449,7 +449,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 last = false;
 
                 File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + "distance.txt");
+                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + "distance.txt");
 
                 try {
                     PrintWriter out = new PrintWriter(distanceFile);
@@ -539,12 +539,12 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             Log.d(TAG, "HERE");
             currentFileName = "Object-" + Long.toHexString(System.currentTimeMillis());
             File videoFile = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName, currentFileName + "_video.mp4");
+                    Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, currentFileName + "_video.mp4");
             File dir = videoFile.getParentFile();
             currentVideoPath = videoFile.getPath();
 
             try (PrintWriter out = new PrintWriter(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES) + "/MeasureUp/filePath.txt")) {
+                    Environment.DIRECTORY_PICTURES) + "/.MeasureUp/filePath.txt")) {
                 out.println(currentVideoPath);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();

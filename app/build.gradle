@@ -52,5 +52,5 @@ dependencies {
     implementation project(':openCVLibrary343')
 
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-
+    implementation 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.14'
 }
