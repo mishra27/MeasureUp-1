@@ -1,7 +1,6 @@
 package com.example.aksha.measureup;
 
 import android.graphics.Bitmap;
-import android.media.MediaMetadataRetriever;
 import android.util.Log;
 
 import org.opencv.android.Utils;
@@ -25,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import wseemann.media.FFmpegMediaMetadataRetriever;
 
 import static android.media.MediaMetadataRetriever.OPTION_CLOSEST;
 
@@ -62,7 +63,7 @@ public class VideoProcessor {
 
 
     private int numOfFrame_; // run frameGrab first
-    MediaMetadataRetriever mmr_;
+    FFmpegMediaMetadataRetriever mmr;
 
     public VideoProcessor(File videoFile) {
 
@@ -89,8 +90,8 @@ public class VideoProcessor {
         secondCorners_ = new MatOfPoint();
 
 
-        mmr_ = new MediaMetadataRetriever();
-        mmr_.setDataSource(videoFile.getAbsolutePath());
+        mmr = new FFmpegMediaMetadataRetriever();
+        mmr.setDataSource(videoFile.getAbsolutePath());
 
         // params for ShiTomasi corner detection
         feature_params.put("maxCorners", 10.0);
@@ -208,11 +209,11 @@ public class VideoProcessor {
     public void frameGrabber(long step, ArrayList<Mat> frames, boolean first) {
 
         // grab the first frame info to construct Mat
-        Bitmap firstFrame = mmr_.getFrameAtTime(0);
+        Bitmap firstFrame = mmr.getFrameAtTime(0);
         int width = firstFrame.getWidth();
         int height = firstFrame.getHeight();
 
-        String videoLength = mmr_.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+        String videoLength = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION);
 
         long totalLength = Integer.valueOf(videoLength) * 1000;
 
@@ -251,7 +252,7 @@ public class VideoProcessor {
 
     public void grabFrameAsMat (long step, Mat frame) {
 
-        Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
+        Bitmap currentFrame = mmr.getFrameAtTime(step, OPTION_CLOSEST);
         int width = currentFrame.getWidth();
         int height = currentFrame.getHeight();
         frameHeight_ = height;
