@@ -85,11 +85,12 @@ public class ObjectSaveDialog extends Dialog {
 
             @Override
             public void onClick(View v) {
-                showOtherDialog();
-
-                // TODO save recorded object to gallery
-                videoObject.setName(objectName.getText().toString());
-                videoObjectViewModel.insert(videoObject);
+                if (!objectName.getText().toString().isEmpty()) {
+                    showOtherDialog();
+                    // TODO save recorded object to gallery
+                    videoObject.setName(objectName.getText().toString());
+                    videoObjectViewModel.insert(videoObject);
+                }
             }
         });
 
