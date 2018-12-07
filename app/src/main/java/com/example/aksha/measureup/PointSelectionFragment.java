@@ -176,7 +176,7 @@ public class PointSelectionFragment extends Fragment {
         builder.setCancelable(true);
 
         builder.create().show();
-        Log.d("results: ", String.valueOf(results));
+        Log.d("results: ", String.format("%.2f", String.valueOf(results)));
     }
 
     @Override
