@@ -18,7 +18,9 @@ import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import com.example.aksha.db.models.Measurement;
 import com.example.aksha.db.models.VideoObject;
+import com.example.aksha.db.viewmodels.MeasurementViewModel;
 import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 
 import org.opencv.core.Point;
@@ -39,6 +41,7 @@ public class PointSelectionFragment extends Fragment {
     private ImageView imageView;
 
     private VideoObjectViewModel videoObjectViewModel;
+    private MeasurementViewModel measurementViewModel;
 
     private File img = null;
     private VideoProcessor vp = null;
@@ -55,6 +58,7 @@ public class PointSelectionFragment extends Fragment {
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().hide();
 
         videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
+        measurementViewModel = ViewModelProviders.of(getActivity()).get(MeasurementViewModel.class);
     }
 
     @Override
@@ -161,8 +165,11 @@ public class PointSelectionFragment extends Fragment {
 
     public void onClickProcessor() {
         ArrayList<Point> iniPoints = getMeasurePoints();
+        Point p1 = iniPoints.get(0);
+        Point p2 = iniPoints.get(1);
+
         vp.grabFrames(false);
-        vp.setInitPoints(iniPoints.get(0), iniPoints.get(1));
+        vp.setInitPoints(p1, p2);
         vp.trackOpticalFlow();
         ArrayList<Point> finalPoints = vp.getFinalPoints();
         SizeF sizeF = getCameraResolution(0);
@@ -177,6 +184,24 @@ public class PointSelectionFragment extends Fragment {
         builder.setCancelable(true);
 
         builder.create().show();
+
+        VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
+
+        if (videoObject != null) {
+            Measurement measurement = new Measurement();
+            measurement.setName("Measurement");
+            measurement.setObjectId(videoObject.getId());
+            measurement.setLength(results);
+            measurement.setX1(p1.x);
+            measurement.setX2(p2.x);
+            measurement.setY1(p1.y);
+            measurement.setY2(p2.y);
+
+            measurementViewModel.insert(measurement);
+        } else {
+            Log.e("onClickProcessor()", "videoObject is null!!!!");
+        }
+
         Log.d("results: ", String.valueOf(results));
     }
 

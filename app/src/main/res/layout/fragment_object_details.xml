@@ -103,12 +103,12 @@
         android:layout_weight=".335"
         >
 
-        <ListView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/measurementList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal">
-        </ListView>
+        </androidx.recyclerview.widget.RecyclerView>
     </RelativeLayout>
 
 </LinearLayout>
