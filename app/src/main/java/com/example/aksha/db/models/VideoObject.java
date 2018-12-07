@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey;
 public class VideoObject {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
-    private Integer id;
+    private int id;
 
     @ColumnInfo(name = "name")
     @NonNull
@@ -28,10 +28,10 @@ public class VideoObject {
         this.setName(name);
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
-    public Integer getId() {
+    public int getId() {
         return this.id;
     }
     public void setName(String name){

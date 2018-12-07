@@ -13,10 +13,13 @@ import androidx.room.Query;
 @Dao
 public interface MeasurementDao {
     @Query("select * from measurements where object_id=:objectId")
-    LiveData<List<Measurement>> getMeasurements(Integer objectId);
+    LiveData<List<Measurement>> getMeasurements(int objectId);
+
+    @Query("select * from measurements")
+    LiveData<List<Measurement>> getAllMeasurements();
 
     @Insert
-    void insert(Measurement measurement);
+    void insert(Measurement... measurement);
 
     @Delete
     void delete(Measurement measurement);

@@ -24,7 +24,8 @@ public class VideoObjectRepository {
 
         @Override
         protected Void doInBackground(VideoObject... videoObjects) {
-            videoObjectDao.insert(videoObjects[0]);
+            long id = videoObjectDao.insert(videoObjects[0]);
+            videoObjects[0].setId((int) id);
             return null;
         }
     }

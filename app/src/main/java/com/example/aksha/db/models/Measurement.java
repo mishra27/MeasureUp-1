@@ -4,24 +4,20 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import static androidx.room.ForeignKey.CASCADE;
 
-@Entity(tableName = "measurements",
-        foreignKeys = @ForeignKey(entity = VideoObject.class,
-                parentColumns = "id",
-                childColumns = "id",
-                onDelete = CASCADE
-        )
-)
+@Entity(tableName = "measurements")
 public class Measurement {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
-    private Integer id;
+    private int id;
 
+    @ForeignKey(entity = VideoObject.class, parentColumns = "id", childColumns = "id", onDelete = CASCADE)
     @ColumnInfo(name = "object_id")
-    private Integer objectId;
+    private int objectId;
 
     @ColumnInfo(name = "name")
     @NonNull
@@ -46,22 +42,25 @@ public class Measurement {
     @NonNull
     private Double y2;
 
+    @Ignore
+    private VideoObject videoObject;
+
     public Measurement() {
         name = "";
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
-    public Integer getId() {
+    public int getId() {
         return this.id;
     }
 
-    public Integer getObjectId() {
+    public int getObjectId() {
         return objectId;
     }
 
-    public void setObjectId(Integer objectId) {
+    public void setObjectId(int objectId) {
         this.objectId = objectId;
     }
 
