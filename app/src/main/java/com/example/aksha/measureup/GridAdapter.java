@@ -11,7 +11,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.aksha.DataBase.VideoObject;
+import com.example.aksha.db.models.VideoObject;
 
 import java.util.List;
 
@@ -60,7 +60,7 @@ public class GridAdapter extends BaseAdapter {
             objectView = inflater.inflate(R.layout.gallery_object_layout, null);
 
             TextView text = objectView.findViewById(R.id.textView);
-            text.setText(videoObject.getVideoName());
+            text.setText(videoObject.getName());
 
             ImageView img = objectView.findViewById(R.id.imageView);
 

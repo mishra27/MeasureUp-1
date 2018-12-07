@@ -1,5 +1,8 @@
-package com.example.aksha.DataBase;
+package com.example.aksha.db.dao;
 
+
+import com.example.aksha.db.models.Measurement;
+import com.example.aksha.db.models.VideoObject;
 
 import java.util.List;
 
@@ -24,14 +27,14 @@ public interface VideoObjectDao {
     @Query("SELECT * FROM video_objects")
     LiveData<List<VideoObject>> getAll();
 
-    @Query("SELECT * FROM video_objects where video_name LIKE :videoName")
+    @Query("SELECT * FROM video_objects where name LIKE :videoName")
     VideoObject findByName(String videoName);
 
-    @Query("SELECT COUNT(*) from video_objects")
-    int countVideos();
+    @Query("select * from measurements where object_id=:objectId")
+    LiveData<List<Measurement>> getMeasurements(int objectId);
 
     @Insert
-    void insert(VideoObject videoObject);
+    long insert(VideoObject videoObject);
 
     @Insert
     void insertAll(VideoObject... users);

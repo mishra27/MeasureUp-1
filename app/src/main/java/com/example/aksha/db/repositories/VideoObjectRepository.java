@@ -1,11 +1,11 @@
-package com.example.aksha.measureup;
+package com.example.aksha.db.repositories;
 
 import android.app.Application;
 import android.os.AsyncTask;
 
-import com.example.aksha.DataBase.AppDatabase;
-import com.example.aksha.DataBase.VideoObjectDao;
-import com.example.aksha.DataBase.VideoObject;
+import com.example.aksha.db.AppDatabase;
+import com.example.aksha.db.dao.VideoObjectDao;
+import com.example.aksha.db.models.VideoObject;
 
 import java.util.List;
 
@@ -24,19 +24,20 @@ public class VideoObjectRepository {
 
         @Override
         protected Void doInBackground(VideoObject... videoObjects) {
-            videoObjectDao.insert(videoObjects[0]);
+            long id = videoObjectDao.insert(videoObjects[0]);
+            videoObjects[0].setId((int) id);
             return null;
         }
     }
 
-    VideoObjectRepository(Application application) {
+    public VideoObjectRepository(Application application) {
         AppDatabase db = AppDatabase.getAppDatabase(application);
 
         videoObjectDao = db.videoObjectDao();
         allVideoObjects = videoObjectDao.getAll();
     }
 
-    LiveData<List<VideoObject>> getAllVideoObjects() {
+    public LiveData<List<VideoObject>> getAllVideoObjects() {
         return allVideoObjects;
     }
 
