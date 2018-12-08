@@ -2,6 +2,7 @@ package com.example.aksha.measureup;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         videoObjectViewModel = ViewModelProviders.of(this).get(VideoObjectViewModel.class);
 
         navController = Navigation.findNavController(this, R.id.fragment);
@@ -54,6 +56,39 @@ public class MainActivity extends AppCompatActivity {
     }
     public interface OnFragmentInteractionListener{
         public void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onBackPressed() {
+        //this is only needed if you have specific things
+        //that you want to do when the user presses the back button.
+        /* your specific things...*/
+
+        if(getSupportActionBar().getTitle().equals("Details"))
+            navController.navigate(R.id.action_objectDetailsFragment_to_galleryFragment);
+
+        else if(getSupportActionBar().getTitle().equals("Gallery"))
+            navController.navigate(R.id.action_galleryFragment_to_recordScreenFragment);
+
+        else if(getSupportActionBar().getTitle().equals("Main")){}
+
+        else
+            super.onBackPressed();
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                if(getSupportActionBar().getTitle().equals("Details"))
+                    navController.navigate(R.id.action_objectDetailsFragment_to_galleryFragment);
+
+                else if(getSupportActionBar().getTitle().equals("Gallery"))
+                    navController.navigate(R.id.action_galleryFragment_to_recordScreenFragment);
+                break;
+        }
+        return true;
     }
 }
 

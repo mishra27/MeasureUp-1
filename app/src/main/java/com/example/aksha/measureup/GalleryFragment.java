@@ -40,6 +40,7 @@ public class GalleryFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
 
+
         View rootView = inflater.inflate(R.layout.fragment_gallery, container, false);
 
         this.gridView = rootView.findViewById(R.id.gridView);
@@ -68,6 +69,9 @@ public class GalleryFragment extends Fragment {
                 navController.navigate(R.id.action_galleryFragment_to_objectDetailsFragment);
             }
         });
+
+
         return rootView;
     }
+
 }

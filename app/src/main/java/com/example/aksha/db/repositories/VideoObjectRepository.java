@@ -30,10 +30,14 @@ public class VideoObjectRepository {
         }
     }
 
+
+
     public VideoObjectRepository(Application application) {
+
         AppDatabase db = AppDatabase.getAppDatabase(application);
 
         videoObjectDao = db.videoObjectDao();
+
         allVideoObjects = videoObjectDao.getAll();
     }
 
@@ -43,5 +47,17 @@ public class VideoObjectRepository {
 
     public void insert(VideoObject videoObject) {
         new VideoObjectAsyncTask(videoObjectDao).execute(videoObject);
+    }
+
+    public void delete(final VideoObject videoObject) {
+
+        Thread thread = new Thread(){
+            public void run(){
+                videoObjectDao.delete(videoObject);            }
+        }; thread.start();
+
+        allVideoObjects.getValue().remove(videoObject);
+
+
     }
 }

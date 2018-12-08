@@ -24,6 +24,8 @@ public class VideoObject {
     @ColumnInfo(name = "video_path")
     private String videoPath;
 
+
+
     public VideoObject(String name) {
         this.setName(name);
     }

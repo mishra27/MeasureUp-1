@@ -18,6 +18,11 @@
         <action
             android:id="@+id/action_galleryFragment_to_objectDetailsFragment"
             app:destination="@id/objectDetailsFragment" />
+        <action
+            android:id="@+id/action_galleryFragment_to_recordScreenFragment"
+            app:destination="@id/recordScreenFragment" />
+
+
     </fragment>
     <fragment
         android:id="@+id/objectDetailsFragment"
@@ -27,6 +32,12 @@
         <action
             android:id="@+id/action_objectDetailsFragment_to_pointSelectionFragment"
             app:destination="@id/pointSelectionFragment" />
+        <action
+            android:id="@+id/action_objectDetailsFragment_to_galleryFragment"
+            app:destination="@id/galleryFragment" />
+        <action
+            android:id="@+id/action_objectDetailsFragment_to_recordScreenFragment"
+            app:destination="@id/recordScreenFragment" />
     </fragment>
 
     <fragment

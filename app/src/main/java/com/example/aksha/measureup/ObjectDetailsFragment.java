@@ -2,17 +2,20 @@ package com.example.aksha.measureup;
 
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.aksha.db.models.Measurement;
 import com.example.aksha.db.models.VideoObject;
 import com.example.aksha.db.viewmodels.MeasurementViewModel;
 import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 
+import java.io.File;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -27,10 +30,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
-public class ObjectDetailsFragment extends Fragment {
+
+public class ObjectDetailsFragment extends Fragment  {
     private VideoObjectViewModel videoObjectViewModel;
     private MeasurementViewModel measurementViewModel;
     private NavController navController;
+    private Measurement measurementsF;
+
     public ObjectDetailsFragment() {
 
     }
@@ -57,12 +63,14 @@ public class ObjectDetailsFragment extends Fragment {
         videoObjectViewModel.getCurrentVideoObject().observe(this, new Observer<VideoObject>() {
             @Override
             public void onChanged(final VideoObject videoObject) {
+
                 text.setText(videoObject.getName());
                 thumbnail.setImageBitmap(BitmapFactory.decodeFile(videoObject.getThumbnailPath()));
 
                 measurementViewModel.getMeasurements(videoObject).observe(ObjectDetailsFragment.this, new Observer<List<Measurement>>() {
                     @Override
                     public void onChanged(List<Measurement> measurements) {
+
                         measurementAdapter.setMeasurements(measurements);
                     }
                 });
@@ -75,6 +83,13 @@ public class ObjectDetailsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 measurementNew(v);
+            }
+        });
+
+        rootView.findViewById(R.id.imageButton3).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteObject(v);
             }
         });
 
@@ -92,5 +107,32 @@ public class ObjectDetailsFragment extends Fragment {
         navController.navigate(R.id.action_objectDetailsFragment_to_pointSelectionFragment);
     }
 
+    public void deleteObject(View view) {
+        // navigate to point selection screen
+
+        videoObjectViewModel.getCurrentVideoObject().observe(this, new Observer<VideoObject>() {
+            @Override
+            public void onChanged(VideoObject videoObject) {
+                String objectFolder = videoObject.getVideoPath().substring(0,58);
+              Log.d("PATH IS", objectFolder);
+
+                File dir = new File(objectFolder);
+                if (dir.isDirectory())
+                {
+                    String[] children = dir.list();
+                    for (int i = 0; i < children.length; i++)
+                    {
+                        new File(dir, children[i]).delete();
+                    }
+                }
+                videoObjectViewModel.delete(videoObject);
+            }
+        });
+
+        Toast.makeText(getActivity(), "Object deleted", Toast.LENGTH_SHORT).show();
+        navController.navigate(R.id.action_objectDetailsFragment_to_galleryFragment);
+
+
+    }
 
 }

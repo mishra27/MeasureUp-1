@@ -45,6 +45,11 @@
                                 <LayoutPositions />
                               </value>
                             </entry>
+                            <entry key="action_galleryFragment_to_recordScreenFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                           </map>
                         </option>
                       </LayoutPositions>
@@ -55,12 +60,17 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="518" />
-                            <option name="y" value="724" />
+                            <option name="x" value="619" />
+                            <option name="y" value="718" />
                           </Point>
                         </option>
                         <option name="myPositions">
                           <map>
+                            <entry key="action_objectDetailsFragment_to_galleryFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                             <entry key="action_objectDetailsFragment_to_pointSelectionFragment">
                               <value>
                                 <LayoutPositions />
