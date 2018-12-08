@@ -174,7 +174,7 @@ public class PointSelectionFragment extends Fragment {
         ArrayList<Point> finalPoints = vp.getFinalPoints();
         SizeF sizeF = getCameraResolution(0);
         double oFM = getFocalLength(0) / 1000;
-        double ccdH = getCameraResolution(0).getHeight() / 1000;
+        double ccdH = getCameraResolution(0).getWidth() / 1000;
         double results = vp.measurement(oFM, ccdH, refDistance, iniPoints, finalPoints);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());

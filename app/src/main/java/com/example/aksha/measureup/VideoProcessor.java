@@ -63,7 +63,7 @@ public class VideoProcessor {
 
 
     private int numOfFrame_; // run frameGrab first
-    FFmpegMediaMetadataRetriever mmr;
+    FFmpegMediaMetadataRetriever mmr_;
 
     public VideoProcessor(File videoFile) {
 
@@ -90,8 +90,8 @@ public class VideoProcessor {
         secondCorners_ = new MatOfPoint();
 
 
-        mmr = new FFmpegMediaMetadataRetriever();
-        mmr.setDataSource(videoFile.getAbsolutePath());
+        mmr_ = new FFmpegMediaMetadataRetriever();
+        mmr_.setDataSource(videoFile.getAbsolutePath());
 
         // params for ShiTomasi corner detection
         feature_params.put("maxCorners", 10.0);
@@ -102,8 +102,8 @@ public class VideoProcessor {
         // params for lucas kanade optical flow
         tc_.epsilon = 0.03;
         tc_.maxCount = 10;
-        winSize_ = new Size(15, 15);
-        maxLevel_ = 2;
+        winSize_ = new Size(50, 50);
+        maxLevel_ = 3;
 
 
     }
@@ -144,9 +144,9 @@ public class VideoProcessor {
             Log.d("THATY video : ", String.valueOf(aveY));
             Mat prev = frames_.get(i);
             Imgproc.circle(prev, new Point(aveX, aveY), 20, new Scalar(0, 0, 255), 5);
-            if (i%10 == 0) {
-                saveFrame(i+100, prev );
-            }
+
+            saveFrame(i+100, prev );
+
 
         }
     }
@@ -203,17 +203,17 @@ public class VideoProcessor {
 
 
     public void grabFrames(boolean first) {
-        frameGrabber(50000, frames_, first);
+        frameGrabber(200000, frames_, first);
     }
 
     public void frameGrabber(long step, ArrayList<Mat> frames, boolean first) {
 
         // grab the first frame info to construct Mat
-        Bitmap firstFrame = mmr.getFrameAtTime(0);
+        Bitmap firstFrame = mmr_.getFrameAtTime(0);
         int width = firstFrame.getWidth();
         int height = firstFrame.getHeight();
 
-        String videoLength = mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION);
+        String videoLength = mmr_.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION);
 
         long totalLength = Integer.valueOf(videoLength) * 1000;
 
@@ -252,7 +252,7 @@ public class VideoProcessor {
 
     public void grabFrameAsMat (long step, Mat frame) {
 
-        Bitmap currentFrame = mmr.getFrameAtTime(step, OPTION_CLOSEST);
+        Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
         int width = currentFrame.getWidth();
         int height = currentFrame.getHeight();
         frameHeight_ = height;
@@ -278,15 +278,17 @@ public class VideoProcessor {
 
     }
 
+    int next = 998;
     public void findInitFeatures(Mat inputFrame, MatOfPoint corners, Point point, MatOfPoint2f initPts) {
         double x = point.x;
         double y = point.y;
+        next++;
         Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_8UC1, Scalar.all(0));
         Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255), -1, 8, 0);
         Imgproc.goodFeaturesToTrack(inputFrame, corners, 10, 0.3, 7.0, mask, 7);
         Mat cropped = new Mat();
         inputFrame.copyTo(cropped, mask);
-        saveFrame(999, cropped);
+        saveFrame(next, cropped);
         initPts.fromList(corners.toList());
     }
 
@@ -320,12 +322,12 @@ public class VideoProcessor {
                 intrinsicFocalM * intrinsicFocalM * distanceM/
                         (imgXYR.x *
                                 (0 * imgXYL.x +
-                                0 * imgXYL.y +
-                                1 * intrinsicFocalM) -
-                        intrinsicFocalM *
-                                (1 * imgXYL.x +
-                                0 * imgXYL.y +
-                                0 * intrinsicFocalM));
+                                        0 * imgXYL.y +
+                                        1 * intrinsicFocalM) -
+                                intrinsicFocalM *
+                                        (1 * imgXYL.x +
+                                                0 * imgXYL.y +
+                                                0 * intrinsicFocalM));
         double x = z * imgXYL.x / intrinsicFocalM;
         double y = z * imgXYL.y / intrinsicFocalM;
         worldXYZ[0] = x;

@@ -425,7 +425,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 VideoRecorder.CaptureContext ctx = mRecorder.startCapture();
                 if (ctx != null) {
                     // draw again
-                    draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
+                    draw(frame, camera.getTrackingState() == TrackingState.TRACKING,
                             viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
 
                     // restore the context
@@ -449,49 +449,23 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 result.setText("Distance Moved " + Double.toString(distance) + " cm");
                 last = false;
 
-                File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + "distance.txt");
-
-                try {
-                    PrintWriter out = new PrintWriter(distanceFile);
-                    out.write(Double.toString(distance));
-                    out.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-                //Log.d(TAG, "getDistance(camera) "+ getDistance(camera));
-                currentVideoDistance = Math.abs(getDistance(camera) - initial);
-                result.setGravity(Gravity.CENTER);
-                result.setText("Distance Moved " + Double.toString(currentVideoDistance) + " cm");
 
                 currentVideoObject = new VideoObject(currentFileName);
                 currentVideoObject.setVideoPath(currentVideoPath);
                 currentVideoObject.setThumbnailPath(currentThumbnailPath);
-                currentVideoObject.setMoveDistance(currentVideoDistance);
+                currentVideoObject.setMoveDistance(distance);
                 last = false;
 
                 Message msg = handler.obtainMessage(0, currentVideoObject);
                 msg.sendToTarget();
 
-
-//                File distanceFile = new File(Environment.getExternalStoragePublicDirectory(
-//                        Environment.DIRECTORY_PICTURES) + "/MeasureUp/" + currentFileName,currentFileName + "_distance.txt");
-//
-//
-//
-//
-//                try {
-//                    PrintWriter out = new PrintWriter(distanceFile);
-//                    out.write(Double.toString(currentVideoDistance));
-//                    out.close();
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-
                 // session.update();
             }
 
+            double d = Math.abs(getDistance(camera) - initial);
+            //  result.setGravity(Gravity.CENTER);
+            //  result.setText("Distance Moved " + Double.toString(d) + " cm");
+            Log.d("DIST", String.valueOf(d));
             // Application is responsible for releasing the point cloud resources after
             // using it.
             pointCloud.release();
