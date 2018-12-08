@@ -17,6 +17,7 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
@@ -36,6 +37,9 @@ public class ObjectDetailsFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
+        ((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
+        ((AppCompatActivity) this.getActivity()).getSupportActionBar().setTitle("Details");
+
         final View rootView = inflater.inflate(R.layout.fragment_object_details, container, false);
 
         final TextView text = rootView.findViewById(R.id.name);
