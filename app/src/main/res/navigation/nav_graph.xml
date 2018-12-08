@@ -23,7 +23,12 @@
         android:id="@+id/objectDetailsFragment"
         android:name="com.example.aksha.measureup.ObjectDetailsFragment"
         android:label="fragment_object_details"
-        tools:layout="@layout/fragment_object_details" />
+        tools:layout="@layout/fragment_object_details" >
+        <action
+            android:id="@+id/action_objectDetailsFragment_to_pointSelectionFragment"
+            app:destination="@id/pointSelectionFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/recordScreenFragment"
         android:name="com.example.aksha.measureup.RecordScreenFragment"
@@ -81,6 +86,8 @@
         android:name="com.example.aksha.measureup.PointSelectionFragment"
         android:label="Point Selection"
         tools:layout="@layout/fragment_point_selection" ></fragment>
+
+
 
 
 

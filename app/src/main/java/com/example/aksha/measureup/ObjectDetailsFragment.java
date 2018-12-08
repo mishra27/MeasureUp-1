@@ -2,7 +2,6 @@ package com.example.aksha.measureup;
 
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +13,6 @@ import com.example.aksha.db.models.VideoObject;
 import com.example.aksha.db.viewmodels.MeasurementViewModel;
 import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -22,13 +20,16 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 
 public class ObjectDetailsFragment extends Fragment {
     private VideoObjectViewModel videoObjectViewModel;
     private MeasurementViewModel measurementViewModel;
-
+    private NavController navController;
     public ObjectDetailsFragment() {
 
     }
@@ -64,11 +65,28 @@ public class ObjectDetailsFragment extends Fragment {
             }
         });
 
+
+
+        rootView.findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                measurementNew(v);
+            }
+        });
+
         return rootView;
     }
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        navController = Navigation.findNavController(this.getActivity(), R.id.fragment);
         super.onCreate(savedInstanceState);
 
     }
+
+    public void measurementNew(View view) {
+        // navigate to point selection screen
+        navController.navigate(R.id.action_objectDetailsFragment_to_pointSelectionFragment);
+    }
+
+
 }

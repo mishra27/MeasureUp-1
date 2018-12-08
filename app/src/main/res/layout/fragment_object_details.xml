@@ -42,16 +42,16 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight=".1">
+
         <Button
             android:id="@+id/button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="5dp"
+            android:onClick="measurementNew"
             android:text="New Measurement"
-            android:textAllCaps="false"
-           >
-        </Button>
+            android:textAllCaps="false"></Button>
     </RelativeLayout>
     <RelativeLayout
         android:layout_width="match_parent"

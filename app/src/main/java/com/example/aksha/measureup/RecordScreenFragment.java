@@ -248,6 +248,8 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             return;
         }
 
+
+
         surfaceView.onResume();
         displayRotationHelper.onResume();
     }

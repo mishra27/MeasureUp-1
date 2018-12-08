@@ -202,7 +202,6 @@ public class PointSelectionFragment extends Fragment {
             Log.e("onClickProcessor()", "videoObject is null!!!!");
         }
 
-        Log.d("results: ", String.format("%.2f", String.valueOf(results)));
     }
 
     @Override
