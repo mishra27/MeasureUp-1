@@ -23,16 +23,45 @@
         <action
             android:id="@+id/action_settingsFragment_to_recordScreenFragment"
             app:destination="@id/recordScreenFragment" />
+
+        <action
+            android:id="@+id/action_settingsFragment_to_PasswordSettingsFragment"
+            app:destination="@id/PasswordSettingsFragment" />
+
+
     </fragment>
 
+    <fragment
+        android:id="@+id/PasswordSettingsFragment"
+        android:name="com.example.aksha.passwordAndSecurityQuestion.PasswordSettingFragment"
+        android:label="Password Settings"
+        tools:layout="@layout/fragment_password_setting">
+
+        <action
+            android:id="@+id/action_passwordSettingdFragment_to_changePasswordFragments"
+            app:destination="@id/changePasswordFragment" />
+
+        <action
+            android:id="@+id/action_passwordSettingdFragment_to_createPasswordFragments"
+            app:destination="@id/createPasswordFragment" />
+
+        <action
+            android:id="@+id/action_passwordSettingdFragment_to_settingsFragments"
+            app:destination="@id/settingsFragment" />
+
+
+
+
+
+    </fragment>
     <fragment
         android:id="@+id/changePasswordFragment"
         android:name="com.example.aksha.passwordAndSecurityQuestion.ChangePasswordFragment"
         android:label="Password"
         tools:layout="@layout/fragment_change_password">
         <action
-            android:id="@+id/action_changePasswordFragment_to_settingsFragment"
-            app:destination="@id/settingsFragment" />
+            android:id="@+id/action_changePasswordFragment_to_passwordSettingsFragment"
+            app:destination="@id/PasswordSettingsFragment" />
 
     </fragment>
 

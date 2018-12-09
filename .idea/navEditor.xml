@@ -8,6 +8,32 @@
             <LayoutPositions>
               <option name="myPositions">
                 <map>
+                  <entry key="PasswordSettingdFragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="12" />
+                            <option name="y" value="12" />
+                          </Point>
+                        </option>
+                        <option name="myPositions">
+                          <map>
+                            <entry key="action_passwordSettingdFragment_to_changePasswordFragments">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                            <entry key="action_passwordSettingdFragment_to_createPasswordFragments">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
                   <entry key="changePasswordFragment">
                     <value>
                       <LayoutPositions>
@@ -255,6 +281,11 @@
                         </option>
                         <option name="myPositions">
                           <map>
+                            <entry key="action_settingsFragment_to_PasswordSettingdFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                             <entry key="action_settingsFragment_to_changePasswordFragment">
                               <value>
                                 <LayoutPositions />

@@ -71,6 +71,8 @@ public class ChangePasswordFragment extends Fragment {
                             editor.remove("password");
                             editor.putString("password", text1);
                             editor.apply();
+                            navController.navigate(R.id.action_changePasswordFragment_to_passwordSettingsFragment);
+
                             Toast.makeText(ChangePasswordFragment.this.getActivity(),"Passwords successfully changed!", Toast.LENGTH_SHORT).show();
                         }
 

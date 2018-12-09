@@ -36,8 +36,8 @@ public class SettingsFragment extends Fragment {
 
         super.onViewCreated(view, savedInstanceState);
 
-        buttonPassword = view.findViewById(R.id.button2);
-        buttonQuestion = view.findViewById(R.id.button10);
+        buttonPassword = view.findViewById(R.id.buttonPass);
+        buttonQuestion = view.findViewById(R.id.buttonSec);
 
         SharedPreferences settings = this.getActivity().getSharedPreferences("PREFS", 0);
         secure = settings.getString("secure", "");
@@ -47,15 +47,18 @@ public class SettingsFragment extends Fragment {
         buttonPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (secure.equals("yes")) {
-                    navController.navigate(R.id.action_settingsFragment_to_changePasswordFragment);
 
-                    // TODO navigate to change password fragment
-                } else {
-                    navController.navigate(R.id.action_settingsFragment_to_createPasswordFragment);
+                navController.navigate(R.id.action_settingsFragment_to_PasswordSettingsFragment);
 
-                    // TODO navigate to create password fragment
-                }
+//                if (secure.equals("yes")) {
+//                    navController.navigate(R.id.action_settingsFragment_to_changePasswordFragment);
+//
+//                    // TODO navigate to change password fragment
+//                } else {
+//                    navController.navigate(R.id.action_settingsFragment_to_createPasswordFragment);
+//
+//                    // TODO navigate to create password fragment
+//                }
             }
         });
 
