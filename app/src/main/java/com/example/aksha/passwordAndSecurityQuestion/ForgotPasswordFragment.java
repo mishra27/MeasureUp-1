@@ -1,6 +1,5 @@
 package com.example.aksha.passwordAndSecurityQuestion;
 
-import android.app.ActionBar;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,10 +12,11 @@ import android.widget.Toast;
 
 import com.example.aksha.measureup.R;
 
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 public class ForgotPasswordFragment extends Fragment {
 
@@ -24,10 +24,13 @@ public class ForgotPasswordFragment extends Fragment {
     Button button;
     String question, answer;
     TextView textView;
+    NavController navController;
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        navController = Navigation.findNavController(this.getActivity(), R.id.fragment);
         return inflater.inflate(R.layout.fragment_forgot_password, container, false);
     }
 
@@ -46,12 +49,15 @@ public class ForgotPasswordFragment extends Fragment {
         textView.setText(question);
 
         button.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
                 String text = editText.getText().toString().toLowerCase();
 
                 if (text.equals(answer)) {
                     settings.edit().remove("password");
+                    navController.navigate(R.id.action_forgotPasswordFragment_to_createPasswordFragment);
+
                     // TODO navigate to create password fragment
                 } else {
                     Toast.makeText(ForgotPasswordFragment.this.getActivity(), "Invalid answer!", Toast.LENGTH_SHORT).show();

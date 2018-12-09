@@ -15,15 +15,19 @@ import com.example.aksha.measureup.R;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 public class CreatePasswordFragment extends Fragment {
 
     EditText editText1, editText2;
     Button button;
     String question;
+    NavController navController;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, @Nullable Bundle savedInstanceState) {
+        navController = Navigation.findNavController(this.getActivity(), R.id.fragment);
         return inflater.inflate(R.layout.fragment_create_password, container, false);
     }
 
@@ -59,8 +63,10 @@ public class CreatePasswordFragment extends Fragment {
                         //enter the app
                         if (question.equals("")) {
                             // if password has not been initialized yet
+                            navController.navigate(R.id.action_createPasswordFragment_to_securityQuestionFragment);
                             // TODO navigate to security question fragment
                         } else {
+                            navController.navigate(R.id.action_createPasswordFragment_to_recordScreenFragment);
                             // TODO navigate to record screen fragment
                         }
                     } else {

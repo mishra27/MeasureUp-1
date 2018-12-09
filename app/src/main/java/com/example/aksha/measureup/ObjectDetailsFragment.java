@@ -125,6 +125,8 @@ public class ObjectDetailsFragment extends Fragment  {
                         new File(dir, children[i]).delete();
                     }
                 }
+
+                dir.delete();
                 videoObjectViewModel.delete(videoObject);
             }
         });

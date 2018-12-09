@@ -1,16 +1,12 @@
 package com.example.aksha.passwordAndSecurityQuestion;
 
-import android.app.ActionBar;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.aksha.measureup.R;
@@ -18,26 +14,27 @@ import com.example.aksha.measureup.R;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 public class ChangePasswordFragment extends Fragment {
 
     EditText editText1, editText2, editText3;
     Button button;
-    ImageView imageView;
     String password;
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    NavController navController;
 
-        Window w = this.getActivity().getWindow();
-        w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        w.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-    }
+//    @Override
+//    public void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        navController = Navigation.findNavController(this.getActivity(), R.id.fragment);
+
         return inflater.inflate(R.layout.fragment_change_password, container, false);
     }
 
@@ -49,7 +46,6 @@ public class ChangePasswordFragment extends Fragment {
         editText2 = (EditText) view.findViewById(R.id.editText10);
         editText3 = (EditText) view.findViewById(R.id.editText11);
         button = (Button) view.findViewById(R.id.button11);
-        imageView = (ImageView) view.findViewById(R.id.imageView);
 
         SharedPreferences settings = this.getActivity().getSharedPreferences("PREFS", 0);
         password = settings.getString("password", "");
@@ -89,6 +85,6 @@ public class ChangePasswordFragment extends Fragment {
             }
         });
 
-        // TODO setup button to navigate to settings activity
+
     }
 }

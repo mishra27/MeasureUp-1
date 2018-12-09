@@ -1,6 +1,5 @@
 package com.example.aksha.passwordAndSecurityQuestion;
 
-import android.app.ActionBar;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,14 +12,19 @@ import com.example.aksha.measureup.R;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 public class SetupFragment extends Fragment {
 
     Button button, button2, button3;
+    NavController navController;
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        navController = Navigation.findNavController(this.getActivity(), R.id.fragment);
         return inflater.inflate(R.layout.activity_setup, container, false);
     }
 
@@ -44,6 +48,7 @@ public class SetupFragment extends Fragment {
                 //enter the app
 
                 // if password has not been initialized yet
+                navController.navigate(R.id.action_SetupFragment_to_createPasswordFragment);
                 // TODO navigate to create password fragment
 
             }
@@ -61,6 +66,8 @@ public class SetupFragment extends Fragment {
                 //enter the app
 
                 // if password has not been initialized yet
+                navController.navigate(R.id.action_SetupFragment_to_recordScreenFragment);
+
                 // TODO navigate to record screen fragment
 
             }
@@ -77,6 +84,8 @@ public class SetupFragment extends Fragment {
 
                 //enter the app
                 // if password has not been initialized yet
+                navController.navigate(R.id.action_SetupFragment_to_recordScreenFragment);
+
                 // TODO navigate to record screen fragment
 
             }

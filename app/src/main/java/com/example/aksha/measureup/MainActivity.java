@@ -72,6 +72,15 @@ public class MainActivity extends AppCompatActivity {
 
         else if(getSupportActionBar().getTitle().equals("Main")){}
 
+        else if(getSupportActionBar().getTitle().equals("Password"))
+            navController.navigate(R.id.action_changePasswordFragment_to_settingsFragment);
+
+        else if(getSupportActionBar().getTitle().equals("Security Question"))
+            navController.navigate(R.id.action_changeSecurityQuestionFragment_to_settingsFragment);
+
+        else if(getSupportActionBar().getTitle().equals("Settings"))
+            navController.navigate(R.id.action_settingsFragment_to_recordScreenFragment);
+
         else
             super.onBackPressed();
 
@@ -86,6 +95,15 @@ public class MainActivity extends AppCompatActivity {
 
                 else if(getSupportActionBar().getTitle().equals("Gallery"))
                     navController.navigate(R.id.action_galleryFragment_to_recordScreenFragment);
+
+                else if(getSupportActionBar().getTitle().equals("Password"))
+                    navController.navigate(R.id.action_changePasswordFragment_to_settingsFragment);
+
+                else if(getSupportActionBar().getTitle().equals("Security Question"))
+                    navController.navigate(R.id.action_changeSecurityQuestionFragment_to_settingsFragment);
+
+                else if(getSupportActionBar().getTitle().equals("Settings"))
+                    navController.navigate(R.id.action_settingsFragment_to_recordScreenFragment);
                 break;
         }
         return true;

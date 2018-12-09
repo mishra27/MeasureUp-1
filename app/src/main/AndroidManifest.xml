@@ -36,7 +36,7 @@
             android:name="com.google.ar.core"
             android:value="required" />
 
-        <activity android:name=".ObjectDetailsDialog"></activity>
+        <activity android:name=".ObjectDetailsDialog" />
     </application>
 
 </manifest>

@@ -1,6 +1,5 @@
 package com.example.aksha.passwordAndSecurityQuestion;
 
-import android.app.ActionBar;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,16 +14,21 @@ import com.example.aksha.measureup.R;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 public class EnterPasswordFragment extends Fragment {
 
     EditText editText;
     Button button, button2;
     String password;
+    NavController navController;
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        navController = Navigation.findNavController(this.getActivity(), R.id.fragment);
         return inflater.inflate(R.layout.fragment_enter_password, container, false);
     }
 
@@ -46,6 +50,7 @@ public class EnterPasswordFragment extends Fragment {
                 String text = editText.getText().toString();
 
                 if(text.equals(password)){
+                    navController.navigate(R.id.action_enterPasswordFragment_to_recordScreenFragment);
                     // TODO navigate to record screen fragment
                 } else{
                     Toast.makeText(EnterPasswordFragment.this.getActivity(),"Invalid password!", Toast.LENGTH_SHORT).show();
@@ -54,5 +59,14 @@ public class EnterPasswordFragment extends Fragment {
         });
 
         // TODO button2 navigate to forgot password fragment
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                navController.navigate(R.id.action_enterPasswordFragment_to_forgotPasswordFragment);
+
+
+            }
+        });
     }
 }

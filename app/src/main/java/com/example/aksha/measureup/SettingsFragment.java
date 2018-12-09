@@ -12,16 +12,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 public class SettingsFragment extends Fragment {
 
     Button buttonPassword, buttonQuestion;
     private String secure;
     private String question;
+    NavController navController;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        navController = Navigation.findNavController(this.getActivity(), R.id.fragment);
+
         return inflater.inflate(R.layout.fragment_settings, container, false);
     }
 
@@ -43,8 +48,12 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (secure.equals("yes")) {
+                    navController.navigate(R.id.action_settingsFragment_to_changePasswordFragment);
+
                     // TODO navigate to change password fragment
                 } else {
+                    navController.navigate(R.id.action_settingsFragment_to_createPasswordFragment);
+
                     // TODO navigate to create password fragment
                 }
             }
@@ -56,6 +65,8 @@ public class SettingsFragment extends Fragment {
                 if (question.equals("")) {
                     Toast.makeText(SettingsFragment.this.getActivity(), "Need to create password first!", Toast.LENGTH_SHORT).show();
                 } else {
+                    navController.navigate(R.id.action_settingsFragment_to_changeSecurityQuestionFragment);
+
                     // TODO navigate to change security question fragment
                 }
             }

@@ -1,6 +1,5 @@
 package com.example.aksha.passwordAndSecurityQuestion;
 
-import android.app.ActionBar;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,15 +13,20 @@ import com.example.aksha.measureup.R;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 public class SecurityQuestionFragment extends Fragment {
 
     EditText editText1, editText2;
     Button button;
+    NavController navController;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        navController = Navigation.findNavController(this.getActivity(), R.id.fragment);
+
         return inflater.inflate(R.layout.fragment_security_question, container, false);
     }
 
@@ -48,6 +52,7 @@ public class SecurityQuestionFragment extends Fragment {
                 editor.putString("answer", text2);
                 editor.apply();
 
+                navController.navigate(R.id.action_securitQuestionFragment_to_recordScreenFragment);
                 // TODO navigate to record screen fragment
             }
         });
