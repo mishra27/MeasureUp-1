@@ -16,6 +16,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static androidx.test.espresso.action.ViewActions.typeText;
+import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isClickable;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -301,5 +302,85 @@ public class MainActivityTest {
     @Test
     public void testingObjectDatabase() {
 
+        this.goToRecordScreen();
+
+        Matcher<View> recordView = withId(R.id.recordButtonView);
+
+        // click record button (start recording)
+        onView(recordView).perform(click());
+
+        // wait for app to record for 5s
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // stop recording
+        onView(recordView).perform(click());
+
+        // wait for dialogue box to appear
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        onView(withHint("Enter a title for the object")).perform(typeText("firstObject"), closeSoftKeyboard());
+
+        Matcher<View> saveView = withText("Save");
+        onView(saveView).perform(click());
+
+        // wait for second dialogue box to appear
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Matcher<View> noView = withText("No");
+        onView(noView).perform(click());
+
+        onView(withId(R.id.imageButton2)).perform(click());
+
+        // wait for prev page to appear
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Checking if object is in the database
+        onView(withText("firstObject")).check(matches(isDisplayed()));
+
+        onView(withText("firstObject")).perform(click());
+
+        // wait for next page to appear
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        onView(withText("New Measurement")).check(matches(isDisplayed()));
+        onView(withText("New Measurement")).check(matches(isClickable()));
+        onView(withText("Measurements")).check(matches(isDisplayed()));
+        onView(withText("Name")).check(matches(isDisplayed()));
+        onView(withText("Distance")).check(matches(isDisplayed()));
+
+        Matcher<View> delete = withId(R.id.imageButton3);
+        onView(delete).check(matches(isClickable()));
+        onView(delete).check(matches(isDisplayed()));
+
+        onView(delete).perform(click());
+
+        // wait for prev page to appear
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        onView(withText("firstObject")).check(doesNotExist());
     }
 }
