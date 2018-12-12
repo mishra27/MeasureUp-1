@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,13 +28,10 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-
-
 public class ObjectDetailsFragment extends Fragment  {
     private VideoObjectViewModel videoObjectViewModel;
     private MeasurementViewModel measurementViewModel;
     private NavController navController;
-    private Measurement measurementsF;
 
     public ObjectDetailsFragment() {
 
@@ -46,38 +42,46 @@ public class ObjectDetailsFragment extends Fragment  {
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().setTitle("Details");
 
+        videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
+        measurementViewModel = ViewModelProviders.of(this).get(MeasurementViewModel.class);
+
         final View rootView = inflater.inflate(R.layout.fragment_object_details, container, false);
 
         final TextView text = rootView.findViewById(R.id.name);
-        final ImageView thumbnail = rootView.findViewById(R.id.thumbnail);
+        final ThumbnailMeasurementView thumbnail = rootView.findViewById(R.id.thumbnail);
         final RecyclerView measurementsView = rootView.findViewById(R.id.measurementList);
 
-        final MeasurementAdapter measurementAdapter = new MeasurementAdapter(getContext());
+        final MeasurementAdapter measurementAdapter = new MeasurementAdapter(getContext(), measurementViewModel);
 
         measurementsView.setAdapter(measurementAdapter);
         measurementsView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
-        measurementViewModel = ViewModelProviders.of(getActivity()).get(MeasurementViewModel.class);
+        measurementViewModel.getCurrentMeasurement().observe(this, new Observer<Measurement>() {
+            @Override
+            public void onChanged(Measurement measurement) {
+                if (measurement != null) {
+                    thumbnail.setPoints(measurement.getX1(), measurement.getY1(), measurement.getX2(), measurement.getY2());
+                    thumbnail.showMeasurement();
+                } else {
+                    thumbnail.hideMeasurement();
+                }
+            }
+        });
 
         videoObjectViewModel.getCurrentVideoObject().observe(this, new Observer<VideoObject>() {
             @Override
             public void onChanged(final VideoObject videoObject) {
-
                 text.setText(videoObject.getName());
                 thumbnail.setImageBitmap(BitmapFactory.decodeFile(videoObject.getThumbnailPath()));
 
                 measurementViewModel.getMeasurements(videoObject).observe(ObjectDetailsFragment.this, new Observer<List<Measurement>>() {
                     @Override
                     public void onChanged(List<Measurement> measurements) {
-
                         measurementAdapter.setMeasurements(measurements);
                     }
                 });
             }
         });
-
-
 
         rootView.findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,7 +113,6 @@ public class ObjectDetailsFragment extends Fragment  {
 
     public void deleteObject(View view) {
         // navigate to point selection screen
-
         videoObjectViewModel.getCurrentVideoObject().observe(this, new Observer<VideoObject>() {
             @Override
             public void onChanged(VideoObject videoObject) {

@@ -1,7 +1,6 @@
 package com.example.aksha.measureup;
 
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -33,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.Navigation;
 
 public class PointSelectionFragment extends Fragment {
     private PointSelectorView point1;
@@ -128,9 +128,8 @@ public class PointSelectionFragment extends Fragment {
         return points;
     }
 
-    private SizeF getCameraResolution(int camNum)
-    {
-        SizeF size = new SizeF(0,0);
+    private SizeF getCameraResolution(int camNum) {
+        SizeF size = new SizeF(0, 0);
         CameraManager manager = (CameraManager) this.getActivity().getSystemService(Context.CAMERA_SERVICE);
         try {
             String[] cameraIds = manager.getCameraIdList();
@@ -138,9 +137,7 @@ public class PointSelectionFragment extends Fragment {
                 CameraCharacteristics character = manager.getCameraCharacteristics(cameraIds[camNum]);
                 size = character.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
             }
-        }
-        catch (CameraAccessException e)
-        {
+        } catch (CameraAccessException e) {
             Log.e("YourLogString", e.getMessage(), e);
         }
         return size;
@@ -154,9 +151,7 @@ public class PointSelectionFragment extends Fragment {
                 CameraCharacteristics character = manager.getCameraCharacteristics(cameraIds[camNum]);
                 return character.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)[camNum];
             }
-        }
-        catch (CameraAccessException e)
-        {
+        } catch (CameraAccessException e) {
             Log.e("YourLogString", e.getMessage(), e);
         }
 
@@ -168,6 +163,7 @@ public class PointSelectionFragment extends Fragment {
         Point p1 = iniPoints.get(0);
         Point p2 = iniPoints.get(1);
 
+//        /*
         vp.grabFrames(false);
         vp.setInitPoints(p1, p2);
         vp.trackOpticalFlow();
@@ -176,30 +172,28 @@ public class PointSelectionFragment extends Fragment {
         double oFM = getFocalLength(0) / 1000;
         double ccdH = getCameraResolution(0).getWidth() / 1000;
         double results = vp.measurement(oFM, ccdH, refDistance, iniPoints, finalPoints);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
-
-        builder.setTitle("Results");
-        builder.setMessage(results + " m");
-        builder.setCancelable(true);
-
-        builder.create().show();
+//        */
 
         VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
 
         if (videoObject != null) {
+            View parentView = (View) point1.getParent();
+            int width = parentView.getWidth();
+            int height = parentView.getHeight();
+
             Measurement measurement = new Measurement();
             measurement.setName("Measurement");
             measurement.setObjectId(videoObject.getId());
             measurement.setLength(results);
-            measurement.setX1(p1.x);
-            measurement.setX2(p2.x);
-            measurement.setY1(p1.y);
-            measurement.setY2(p2.y);
+            measurement.setX1(p1.x / width);
+            measurement.setX2(p2.x / width);
+            measurement.setY1(p1.y / height);
+            measurement.setY2(p2.y / height);
 
-            measurementViewModel.insert(measurement);
+            new MeasurementSaveDialog(this.getContext(), measurement, measurementViewModel,
+                    Navigation.findNavController(this.getActivity(), R.id.fragment)).show();
         } else {
-            Log.e("onClickProcessor()", "videoObject is null!!!!");
+            Log.e("onClickProcessor", "videoObject is null!!!!");
         }
 
     }

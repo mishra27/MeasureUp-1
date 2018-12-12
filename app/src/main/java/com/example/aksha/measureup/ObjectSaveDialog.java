@@ -87,7 +87,6 @@ public class ObjectSaveDialog extends Dialog {
             public void onClick(View v) {
                 if (!objectName.getText().toString().isEmpty()) {
                     showOtherDialog();
-                    // TODO save recorded object to gallery
                     videoObject.setName(objectName.getText().toString());
                     videoObjectViewModel.insert(videoObject);
                 }

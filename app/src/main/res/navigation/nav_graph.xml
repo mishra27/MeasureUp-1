@@ -259,6 +259,10 @@
         android:id="@+id/pointSelectionFragment"
         android:name="com.example.aksha.measureup.PointSelectionFragment"
         android:label="Point Selection"
-        tools:layout="@layout/fragment_point_selection" ></fragment>
+        tools:layout="@layout/fragment_point_selection" >
+        <action
+            android:id="@+id/action_pointSelectionFragment_to_objectDetailsFragment"
+            app:destination="@id/objectDetailsFragment" />
+    </fragment>
 
 </navigation>
