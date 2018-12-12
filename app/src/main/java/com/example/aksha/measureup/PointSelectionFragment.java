@@ -168,6 +168,7 @@ public class PointSelectionFragment extends Fragment {
         Point p1 = iniPoints.get(0);
         Point p2 = iniPoints.get(1);
 
+        ///*
         vp.grabFrames(false);
         vp.setInitPoints(p1, p2);
         vp.trackOpticalFlow();
@@ -184,22 +185,27 @@ public class PointSelectionFragment extends Fragment {
         builder.setCancelable(true);
 
         builder.create().show();
+        //*/
 
         VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
 
         if (videoObject != null) {
+            View parentView = (View) point1.getParent();
+            int width = parentView.getWidth();
+            int height = parentView.getHeight();
+
             Measurement measurement = new Measurement();
             measurement.setName("Measurement");
             measurement.setObjectId(videoObject.getId());
             measurement.setLength(results);
-            measurement.setX1(p1.x);
-            measurement.setX2(p2.x);
-            measurement.setY1(p1.y);
-            measurement.setY2(p2.y);
+            measurement.setX1(p1.x / width);
+            measurement.setX2(p2.x / width);
+            measurement.setY1(p1.y / height);
+            measurement.setY2(p2.y / height);
 
             measurementViewModel.insert(measurement);
         } else {
-            Log.e("onClickProcessor()", "videoObject is null!!!!");
+            Log.e("onClickProcessor", "videoObject is null!!!!");
         }
 
     }
