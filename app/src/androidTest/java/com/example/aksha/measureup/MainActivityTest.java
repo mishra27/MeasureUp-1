@@ -122,6 +122,19 @@ public class MainActivityTest {
         onView(withText("FORGOT?")).check(matches(isDisplayed()));
         onView(withText("FORGOT?")).check(matches(isClickable()));
 
+        onView(withText("FORGOT?")).perform(click());
+
+        // wait for next page to load
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        onView(withText("Home Town?")).check(matches(isDisplayed()));
+        onView(withText("ENTER")).check(matches(isDisplayed()));
+        onView(withText("ENTER")).check(matches(isClickable()));
+
     }
 
     @Test
