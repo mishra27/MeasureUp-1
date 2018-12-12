@@ -168,7 +168,7 @@ public class PointSelectionFragment extends Fragment {
         Point p1 = iniPoints.get(0);
         Point p2 = iniPoints.get(1);
 
-        ///*
+        /*
         vp.grabFrames(false);
         vp.setInitPoints(p1, p2);
         vp.trackOpticalFlow();
@@ -185,7 +185,7 @@ public class PointSelectionFragment extends Fragment {
         builder.setCancelable(true);
 
         builder.create().show();
-        //*/
+        */
 
         VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
 
@@ -197,7 +197,8 @@ public class PointSelectionFragment extends Fragment {
             Measurement measurement = new Measurement();
             measurement.setName("Measurement");
             measurement.setObjectId(videoObject.getId());
-            measurement.setLength(results);
+//            measurement.setLength(results);
+            measurement.setLength(1d);
             measurement.setX1(p1.x / width);
             measurement.setX2(p2.x / width);
             measurement.setY1(p1.y / height);

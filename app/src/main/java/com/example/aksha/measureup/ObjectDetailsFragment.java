@@ -42,20 +42,31 @@ public class ObjectDetailsFragment extends Fragment  {
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().setTitle("Details");
 
+        videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
+        measurementViewModel = ViewModelProviders.of(this).get(MeasurementViewModel.class);
+
         final View rootView = inflater.inflate(R.layout.fragment_object_details, container, false);
 
         final TextView text = rootView.findViewById(R.id.name);
-        // final ImageView thumbnail = rootView.findViewById(R.id.thumbnail);
         final ThumbnailMeasurementView thumbnail = rootView.findViewById(R.id.thumbnail);
         final RecyclerView measurementsView = rootView.findViewById(R.id.measurementList);
 
-        final MeasurementAdapter measurementAdapter = new MeasurementAdapter(getContext());
+        final MeasurementAdapter measurementAdapter = new MeasurementAdapter(getContext(), measurementViewModel);
 
         measurementsView.setAdapter(measurementAdapter);
         measurementsView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
-        measurementViewModel = ViewModelProviders.of(getActivity()).get(MeasurementViewModel.class);
+        measurementViewModel.getCurrentMeasurement().observe(this, new Observer<Measurement>() {
+            @Override
+            public void onChanged(Measurement measurement) {
+                if (measurement != null) {
+                    thumbnail.setPoints(measurement.getX1(), measurement.getY1(), measurement.getX2(), measurement.getY2());
+                    thumbnail.showMeasurement();
+                } else {
+                    thumbnail.hideMeasurement();
+                }
+            }
+        });
 
         videoObjectViewModel.getCurrentVideoObject().observe(this, new Observer<VideoObject>() {
             @Override
@@ -67,11 +78,6 @@ public class ObjectDetailsFragment extends Fragment  {
                     @Override
                     public void onChanged(List<Measurement> measurements) {
                         measurementAdapter.setMeasurements(measurements);
-
-                        if (!measurements.isEmpty()) {
-                            Measurement measurement = measurements.get(0);
-                            thumbnail.setPoints(measurement.getX1(), measurement.getY1(), measurement.getX2(), measurement.getY2());
-                        }
                     }
                 });
             }

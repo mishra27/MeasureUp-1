@@ -12,7 +12,8 @@ import androidx.appcompat.widget.AppCompatImageView;
 
 public class ThumbnailMeasurementView extends AppCompatImageView {
     private Paint paint;
-    private float[] points;
+    private boolean show = false;
+    private float[] points = new float[] {0, 0, 0, 0};
     private float[] matrix = new float[9];
 
     public ThumbnailMeasurementView(Context context) {
@@ -35,17 +36,27 @@ public class ThumbnailMeasurementView extends AppCompatImageView {
         paint.setAntiAlias(true);
         paint.setARGB(255, 255, 0, 0);
         paint.setStrokeWidth(2);
+    }
 
-        points = new float[] {0, 0, 0, 0};
+    public void showMeasurement() {
+        show = true;
+        invalidate();
+    }
+
+    public void hideMeasurement() {
+        show = false;
+        invalidate();
     }
 
     public void setPoints(float... points) {
         if (points.length < 4) return;
 
-        this.points[0] = points[0];
+        System.arraycopy(points, 0, this.points, 0, 4);
+
+        /*this.points[0] = points[0];
         this.points[1] = points[1];
         this.points[2] = points[2];
-        this.points[3] = points[3];
+        this.points[3] = points[3];*/
 
         this.invalidate();
     }
@@ -63,6 +74,8 @@ public class ThumbnailMeasurementView extends AppCompatImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        if (!show) return;
 
         Drawable drawable = this.getDrawable();
         Rect bounds = drawable.getBounds();
