@@ -8,7 +8,7 @@
             <LayoutPositions>
               <option name="myPositions">
                 <map>
-                  <entry key="PasswordSettingdFragment">
+                  <entry key="PasswordSettingsFragment">
                     <value>
                       <LayoutPositions>
                         <option name="myPosition">
@@ -29,6 +29,11 @@
                                 <LayoutPositions />
                               </value>
                             </entry>
+                            <entry key="action_passwordSettingdFragment_to_settingsFragments">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                           </map>
                         </option>
                       </LayoutPositions>
@@ -45,7 +50,7 @@
                         </option>
                         <option name="myPositions">
                           <map>
-                            <entry key="action_changePasswordFragment_to_settingsFragment">
+                            <entry key="action_changePasswordFragment_to_passwordSettingsFragment">
                               <value>
                                 <LayoutPositions />
                               </value>
@@ -215,6 +220,15 @@
                             <option name="y" value="368" />
                           </Point>
                         </option>
+                        <option name="myPositions">
+                          <map>
+                            <entry key="action_pointSelectionFragment_to_objectDetailsFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
                       </LayoutPositions>
                     </value>
                   </entry>
@@ -281,7 +295,7 @@
                         </option>
                         <option name="myPositions">
                           <map>
-                            <entry key="action_settingsFragment_to_PasswordSettingdFragment">
+                            <entry key="action_settingsFragment_to_PasswordSettingsFragment">
                               <value>
                                 <LayoutPositions />
                               </value>
