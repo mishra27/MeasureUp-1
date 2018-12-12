@@ -1,6 +1,7 @@
 package com.example.aksha.measureup;
 
 
+import android.os.Environment;
 import android.view.View;
 
 
@@ -8,6 +9,8 @@ import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
+
+import java.io.File;
 
 import androidx.test.core.app.ActivityScenario;
 
@@ -24,6 +27,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withHint;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertTrue;
 
 
 public class MainActivityTest {
@@ -37,7 +41,7 @@ public class MainActivityTest {
 
         // wait for the app to load
         try {
-            Thread.sleep(7000);
+            Thread.sleep(4000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -54,6 +58,48 @@ public class MainActivityTest {
             e.printStackTrace();
         }
 
+    }
+
+    // Checking whether contents are getting saved in the phone storage
+    @Test
+    public void testingPhoneStorage() {
+
+        this.goToRecordScreen();
+
+        Matcher<View> recordView = withId(R.id.recordButtonView);
+
+        // grab current amount of directories
+        File measureUpDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/.MeasureUp");
+
+        int files = 0;
+        if (measureUpDir.exists()) {
+            if (measureUpDir.list() != null) {
+                files = measureUpDir.list().length;
+            }
+        }
+
+        // click record button (start recording)
+        onView(recordView).perform(click());
+
+        // wait for app to record for 1s
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // stop recording
+        onView(recordView).perform(click());
+
+        // wait for files to be written
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        assertTrue(measureUpDir.list().length > files);
     }
 
     // Checking the correctness of logIn page after the pin has been setup
@@ -75,6 +121,19 @@ public class MainActivityTest {
         onView(withText("ENTER")).check(matches(isClickable()));
         onView(withText("FORGOT?")).check(matches(isDisplayed()));
         onView(withText("FORGOT?")).check(matches(isClickable()));
+
+        onView(withText("FORGOT?")).perform(click());
+
+        // wait for next page to load
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        onView(withText("Home Town?")).check(matches(isDisplayed()));
+        onView(withText("ENTER")).check(matches(isDisplayed()));
+        onView(withText("ENTER")).check(matches(isClickable()));
 
     }
 
@@ -230,9 +289,9 @@ public class MainActivityTest {
         // click record button (start recording)
         onView(recordView).perform(click());
 
-        // wait for app to record for 5s
+        // wait for app to record for 10s
         try {
-            Thread.sleep(5000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
