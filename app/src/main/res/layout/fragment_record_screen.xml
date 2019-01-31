@@ -22,17 +22,21 @@
             android:id="@+id/linearLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/ToggleButton"
+            app:layout_constraintHorizontal_bias="0.83"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.92">
 
             <ImageButton
                 android:id="@+id/imageButton"
                 style="@android:style/Widget.Holo.Light.ImageButton"
-                android:layout_width="50dp"
-                android:layout_height="wrap_content"
+                android:layout_width="36dp"
+                android:layout_height="34dp"
                 android:contentDescription="Settings"
                 android:src="@android:drawable/ic_menu_preferences" />
 
@@ -40,7 +44,7 @@
                 android:id="@+id/imageButton2"
                 style="@android:style/Widget.Holo.Light.ImageButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="37dp"
                 android:contentDescription="Gallery"
                 android:src="@android:drawable/ic_menu_gallery" />
 
@@ -50,13 +54,10 @@
             android:id="@+id/dist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="389dp"
-            android:layout_marginBottom="36dp"
-            app:layout_constraintBottom_toTopOf="@+id/recordButtonView"
+            android:layout_marginBottom="11dp"
+            app:layout_constraintBottom_toTopOf="@+id/checkBox"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.559"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             tools:text="Distance Moved" />
 
         <com.example.aksha.videoRecorder.RecordButtonView
@@ -74,30 +75,44 @@
             android:id="@+id/ToggleButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="289dp"
+            android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="27dp"
+            android:layout_marginBottom="40dp"
             android:text="ToggleButton"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.514"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout"
-            app:layout_constraintVertical_bias="1.0" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <CheckBox
             android:id="@+id/checkBox"
-            style="@android:style/Widget.Holo.Light.CompoundButton.CheckBox"
+            style="@android:style/Widget.Material.Light.CompoundButton.CheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="86dp"
-            android:layout_marginEnd="30dp"
-            android:layout_marginBottom="27dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/ToggleButton"
+            android:layout_marginStart="176dp"
+            android:layout_marginEnd="176dp"
+            android:outlineAmbientShadowColor="@color/colorAccent"
+            app:buttonTint="#ff69b4"
+            app:layout_constraintBottom_toTopOf="@+id/ToggleButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/liveResult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="72dp"
+            android:layout_marginEnd="18dp"
+            android:layout_marginBottom="36dp"
+            android:text="TextView"
+            android:textColor="#C0C0C0	"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/ToggleButton" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

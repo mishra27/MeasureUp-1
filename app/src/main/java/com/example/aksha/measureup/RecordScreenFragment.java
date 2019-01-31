@@ -114,6 +114,9 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     private final PointCloudRenderer pointCloudRenderer = new PointCloudRenderer();
 
     private TextView result;
+    private TextView liveResult;
+
+
 
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] anchorMatrix = new float[16];
@@ -184,6 +187,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         // Inflate the layout for this fragment
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().hide();
 
+
         return inflater.inflate(R.layout.fragment_record_screen, container, false);
     }
 
@@ -198,6 +202,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
 
     }
@@ -208,6 +213,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
         surfaceView = view.findViewById(R.id.surfaceview);
         result = view.findViewById(R.id.dist);
+        liveResult = view.findViewById(R.id.liveResult);
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ view.getContext());
 
         // Set up tap listener.
@@ -499,7 +505,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     @Override
     public void onDrawFrame(GL10 gl) {
         // draw(gl);
-        // GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         if (session == null) {
             return;
@@ -511,8 +517,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
         try {
 
-            //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
             session.setCameraTextureName(backgroundRenderer.getTextureId());
 
             // Obtain the current frame from ARSession. When the configuration is set to
@@ -522,7 +526,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             Camera camera = frame.getCamera();
 
             // Handle one tap per frame.
-            handleTap(frame, camera);
+           // handleTap(frame, camera);
 
             // Draw background.
             backgroundRenderer.draw(frame);
@@ -552,11 +556,11 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
             // Visualize tracked points.
             PointCloud pointCloud = frame.acquirePointCloud();
-            pointCloudRenderer.update(pointCloud);
 
 
-            draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
-                    viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
+
+//            draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
+//                    viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
 
             if ( mToggleButton.isChecked()) {
 
@@ -578,16 +582,43 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
                 last = false;
                 firstTime = true;
+                initial = 0;
 
                 finalDist = distance;
+
+                currentVideoObject = new VideoObject(currentFileName);
+                currentVideoObject.setVideoPath(currentVideoPath);
+                currentVideoObject.setThumbnailPath(currentThumbnailPath);
+                currentVideoObject.setMoveDistance(finalDist);
+
+                //last = false;
+
+                Log.d("Distances ", Double.toString(finalDist) );
+                result.setText("Distance Moved " + Double.toString(finalDist) + " cm");
+
+                Message msg = handler.obtainMessage(0, currentVideoObject);
+                msg.sendToTarget();
                 // session.update();
             }
 
             double d = Math.abs(getDistance(camera) - initial);
             //  result.setGravity(Gravity.CENTER);
             Log.d("DIST", String.valueOf(d));
+
+            if(mCheckBox.isChecked()) {
+                liveResult.setVisibility(View.VISIBLE);
+                liveResult.setText(String.valueOf(d));
+
+            }
+
+            else
+                liveResult.setVisibility(View.INVISIBLE);
+
+
             // Application is responsible for releasing the point cloud resources after
             // using it.
+            pointCloudRenderer.update(pointCloud);
+            pointCloudRenderer.draw(viewmtx, projmtx);
             pointCloud.release();
 
         } catch (Throwable t) {
@@ -603,29 +634,26 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 Math.pow((translation[2]), 2))) * 100.0) / 100.0) * 100;
     }
 
-    private void draw(Frame frame, boolean paused,
-                      float[] viewMatrix, float[] projectionMatrix,
-                      Pose displayOrientedPose, float lightIntensity) {
+//    private void draw(Frame frame, boolean paused,
+//                      float[] viewMatrix, float[] projectionMatrix,
+//                      Pose displayOrientedPose, float lightIntensity) {
+//
+//        // Clear screen to notify driver it should not load
+//        // any pixels from previous frame.
+//        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+//
+//        // Draw background.
+//        backgroundRenderer.draw(frame);
+//
+//        // If not tracking, don't draw 3d objects.
+//        if (paused) {
+//            return;
+//        }
+//
+//        pointCloudRenderer.draw(viewMatrix, projectionMatrix);
+//    }
 
-        // Clear screen to notify driver it should not load
-        // any pixels from previous frame.
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        // Draw background.
-        backgroundRenderer.draw(frame);
-
-        // If not tracking, don't draw 3d objects.
-        if (paused) {
-            return;
-        }
-
-        pointCloudRenderer.draw(viewMatrix, projectionMatrix);
-    }
-
-    // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
-    private void handleTap(Frame frame, Camera camera) {
-
-    }
 
     public void clickToggleRecording(View view) {
         Log.d(TAG, "clickToggleRecording");
@@ -635,28 +663,17 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
     public void onToggleScreenShare(View view) {
         if (((ToggleButton) view).isChecked()) {
-
-
             mMediaRecorder.start();
         } else {
 
             last = true;
-            mMediaRecorder.stop();
+
+
             mMediaRecorder.reset();
             stopScreenSharing();
             Log.v(TAG, "Stopping Recording");
             mCheckBox.setChecked(false);
             //onVideoCaptured();
-
-            currentVideoObject = new VideoObject(currentFileName);
-            currentVideoObject.setVideoPath(currentVideoPath);
-            currentVideoObject.setThumbnailPath(currentThumbnailPath);
-            currentVideoObject.setMoveDistance(finalDist);
-
-            last = false;
-
-            Message msg = handler.obtainMessage(0, currentVideoObject);
-            msg.sendToTarget();
         }
     }
 
@@ -666,9 +683,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         new ObjectSaveDialog(this.getContext(), currentVideoObject, videoObjectViewModel,
                 Navigation.findNavController(this.getActivity(), R.id.fragment)).show();
 //        result = this.getView().findViewById(R.id.textView10);
-        Log.d("Distances ", Double.toString(finalDist) );
 
-        result.setText("Distance Moved " + Double.toString(finalDist) + " cm");
     }
 
 
