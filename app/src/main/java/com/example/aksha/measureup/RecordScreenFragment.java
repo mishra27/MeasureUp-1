@@ -29,6 +29,7 @@ import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -97,7 +98,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
     // Rendering. The Renderers are created here, and initialized when the GL surface is created.
     private GLSurfaceView surfaceView;
-    private VideoRecorder mRecorder;
     private VideoProcessor videoProcessor;
     private android.opengl.EGLConfig mAndroidEGLConfig;
 
@@ -118,7 +118,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] anchorMatrix = new float[16];
     private static final float[] DEFAULT_COLOR = new float[]{0f, 0f, 0f, 0f};
-    private boolean firstTime = false;
+    private boolean firstTime = true;
     private boolean last = false;
     private double initial;
 
@@ -140,6 +140,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     private VirtualDisplay mVirtualDisplay;
     private MediaProjectionCallback mMediaProjectionCallback;
     private ToggleButton mToggleButton;
+    private CheckBox mCheckBox;
     private MediaRecorder mMediaRecorder;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_PERMISSIONS = 10;
@@ -152,6 +153,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     }
 
     private MediaProjectionManager mProjectionManager;
+    private double finalDist;
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -181,6 +183,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().hide();
+
         return inflater.inflate(R.layout.fragment_record_screen, container, false);
     }
 
@@ -204,6 +207,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         super.onViewCreated(view, savedInstanceState);
 
         surfaceView = view.findViewById(R.id.surfaceview);
+        result = view.findViewById(R.id.dist);
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ view.getContext());
 
         // Set up tap listener.
@@ -238,6 +242,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 (getContext().MEDIA_PROJECTION_SERVICE);
 
         mToggleButton = (ToggleButton) getView().findViewById(R.id.ToggleButton);
+        mCheckBox = (CheckBox) getView().findViewById(R.id.checkBox);
         mToggleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -260,6 +265,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                                                 new String[]{Manifest.permission
                                                         .WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO},
                                                 REQUEST_PERMISSIONS);
+                                        mToggleButton.setChecked(false);
                                     }
                                 }).show();
                     } else {
@@ -269,7 +275,59 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                                 REQUEST_PERMISSIONS);
                     }
                 } else {
+                    if(!mCheckBox.isChecked()) {
+                        Toast.makeText(getActivity(),
+                                "Please check the box first!", Toast.LENGTH_SHORT).show();
+                        mToggleButton.setChecked(false);
+                        return;
+                    }
                     onToggleScreenShare(v);
+                }
+            }
+        });
+
+        mCheckBox.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+
+                if(!mCheckBox.isChecked()){
+                    mMediaRecorder.reset();
+                    stopScreenSharing();
+
+                    String objectFolder = currentVideoPath.substring(0,58);
+                    File dir = new File(objectFolder);
+                    if (dir.isDirectory())
+                    {
+                        String[] children = dir.list();
+                        for (int i = 0; i < children.length; i++)
+                        {
+                            new File(dir, children[i]).delete();
+                        }
+                    }
+
+                    dir.delete();
+                }
+
+                else {
+                    currentFileName = "Object-" + Long.toHexString(System.currentTimeMillis());
+                    File videoFile = new File(Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, currentFileName + "_video.mp4");
+                    File dir = videoFile.getParentFile();
+                    currentVideoPath = videoFile.getPath();
+
+                    try (PrintWriter out = new PrintWriter(Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES) + "/.MeasureUp/filePath.txt")) {
+                        out.println(currentVideoPath);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (!dir.exists()) {
+                        dir.mkdirs();
+                    }
+                    initRecorder(currentVideoPath);
+                    shareScreen();
                 }
             }
         });
@@ -500,19 +558,13 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
                     viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
 
-            if (mRecorder != null && mRecorder.isRecording()) {
-                VideoRecorder.CaptureContext ctx = mRecorder.startCapture();
-                if (ctx != null) {
-                    // draw again
-                    draw(frame, camera.getTrackingState() == TrackingState.TRACKING,
-                            viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
+            if ( mToggleButton.isChecked()) {
 
-                    // restore the context
-                    mRecorder.stopCapture(ctx, frame.getTimestamp());
 
-                }
+                if (firstTime && mToggleButton.isChecked()) {
+                    Log.d("asda", "popopop ");
+                    firstTime =  false;
 
-                if (firstTime) {
                     // save thumbnail
                     Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
                     Mat newframe = getMat(mBitmap);
@@ -520,30 +572,19 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                             Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName);
 
                     initial = getDistance(camera);
-                    firstTime = false;
                 }
-            } else if (mRecorder != null && !mRecorder.isRecording() && last) {
+            } else if (last) {
                 double distance = Math.abs(getDistance(camera) - initial);
-                result.setGravity(Gravity.CENTER);
-                result.setText("Distance Moved " + Double.toString(distance) + " cm");
+
                 last = false;
+                firstTime = true;
 
-
-                currentVideoObject = new VideoObject(currentFileName);
-                currentVideoObject.setVideoPath(currentVideoPath);
-                currentVideoObject.setThumbnailPath(currentThumbnailPath);
-                currentVideoObject.setMoveDistance(distance);
-                last = false;
-
-                Message msg = handler.obtainMessage(0, currentVideoObject);
-                msg.sendToTarget();
-
+                finalDist = distance;
                 // session.update();
             }
 
             double d = Math.abs(getDistance(camera) - initial);
             //  result.setGravity(Gravity.CENTER);
-            //  result.setText("Distance Moved " + Double.toString(d) + " cm");
             Log.d("DIST", String.valueOf(d));
             // Application is responsible for releasing the point cloud resources after
             // using it.
@@ -589,37 +630,34 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     public void clickToggleRecording(View view) {
         Log.d(TAG, "clickToggleRecording");
         // mRecorder = null;
-        if (mRecorder == null || !mRecorder.isRecording()) {
-            Log.d(TAG, "HERE");
-            currentFileName = "Object-" + Long.toHexString(System.currentTimeMillis());
-            File videoFile = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, currentFileName + "_video.mp4");
-            File dir = videoFile.getParentFile();
-            currentVideoPath = videoFile.getPath();
+        //updateControls();
+    }
 
-            try (PrintWriter out = new PrintWriter(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_PICTURES) + "/.MeasureUp/filePath.txt")) {
-                out.println(currentVideoPath);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+    public void onToggleScreenShare(View view) {
+        if (((ToggleButton) view).isChecked()) {
 
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
 
-            try {
-                mRecorder = new VideoRecorder(surfaceView.getWidth(),
-                        surfaceView.getHeight(),
-                        VideoRecorder.DEFAULT_BITRATE, videoFile);
-                mRecorder.setEglConfig(mAndroidEGLConfig);
-            } catch (IOException e) {
-                Log.e(TAG, "Exception starting recording", e);
-            }
+            mMediaRecorder.start();
+        } else {
+
+            last = true;
+            mMediaRecorder.stop();
+            mMediaRecorder.reset();
+            stopScreenSharing();
+            Log.v(TAG, "Stopping Recording");
+            mCheckBox.setChecked(false);
+            //onVideoCaptured();
+
+            currentVideoObject = new VideoObject(currentFileName);
+            currentVideoObject.setVideoPath(currentVideoPath);
+            currentVideoObject.setThumbnailPath(currentThumbnailPath);
+            currentVideoObject.setMoveDistance(finalDist);
+
+            last = false;
+
+            Message msg = handler.obtainMessage(0, currentVideoObject);
+            msg.sendToTarget();
         }
-
-        mRecorder.toggleRecording();
-        updateControls();
     }
 
     private void onVideoCaptured() {
@@ -627,22 +665,12 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
         new ObjectSaveDialog(this.getContext(), currentVideoObject, videoObjectViewModel,
                 Navigation.findNavController(this.getActivity(), R.id.fragment)).show();
+//        result = this.getView().findViewById(R.id.textView10);
+        Log.d("Distances ", Double.toString(finalDist) );
+
+        result.setText("Distance Moved " + Double.toString(finalDist) + " cm");
     }
 
-    private void updateControls() {
-        boolean recording = mRecorder != null && mRecorder.isRecording();
-
-        RecordButtonView recordButtonView = this.getView().findViewById(R.id.recordButtonView);
-        recordButtonView.setRecording(recording);
-        result = this.getView().findViewById(R.id.textView);
-        result.setText("");
-
-        if (!recording) {
-            last = true;
-        } else {
-            firstTime = true;
-        }
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -654,26 +682,19 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             Toast.makeText(getActivity(),
                     "Screen Cast Permission Denied", Toast.LENGTH_SHORT).show();
             mToggleButton.setChecked(false);
+
             return;
         }
         mMediaProjectionCallback = new MediaProjectionCallback();
         mMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
         mMediaProjection.registerCallback(mMediaProjectionCallback, null);
         mVirtualDisplay = createVirtualDisplay();
+
+        if(mToggleButton.isChecked())
         mMediaRecorder.start();
     }
 
-    public void onToggleScreenShare(View view) {
-        if (((ToggleButton) view).isChecked()) {
-            initRecorder();
-            shareScreen();
-        } else {
-            mMediaRecorder.stop();
-            mMediaRecorder.reset();
-            Log.v(TAG, "Stopping Recording");
-            stopScreenSharing();
-        }
-    }
+
 
     private void shareScreen() {
         if (mMediaProjection == null) {
@@ -681,7 +702,12 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             return;
         }
         mVirtualDisplay = createVirtualDisplay();
-        mMediaRecorder.start();
+//        Handler handler = new Handler();
+//        handler.postDelayed(new Runnable() {
+//            public void run() {
+//                mMediaRecorder.start();
+//            }
+//        }, 1000);
     }
 
     private VirtualDisplay createVirtualDisplay() {
@@ -692,20 +718,18 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 /*Handler*/);
     }
 
-    private void initRecorder() {
+    private void initRecorder(String currentVideoPath) {
         String time = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         DISPLAY_WIDTH = surfaceView.getWidth();
         DISPLAY_HEIGHT = surfaceView.getHeight();
         try {
-            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+//            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            mMediaRecorder.setOutputFile(Environment
-                    .getExternalStoragePublicDirectory(Environment
-                            .DIRECTORY_DOWNLOADS) + "/video_" + time +".mp4");
+            mMediaRecorder.setOutputFile(currentVideoPath);
             mMediaRecorder.setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT);
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-            mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+//            mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             mMediaRecorder.setVideoEncodingBitRate(15000000);
             mMediaRecorder.setVideoFrameRate(30);
             int rotation = getActivity().getWindowManager().getDefaultDisplay().getRotation();
