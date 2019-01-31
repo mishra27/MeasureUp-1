@@ -605,15 +605,15 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             //  result.setGravity(Gravity.CENTER);
             Log.d("DIST", String.valueOf(d));
 
-            if(mCheckBox.isChecked()) {
-                liveResult.setVisibility(View.VISIBLE);
-                liveResult.setText(String.valueOf(d));
-
-            }
-
-            else
-                liveResult.setVisibility(View.INVISIBLE);
-
+//            if(mCheckBox.isChecked()) {
+//                liveResult.setVisibility(View.VISIBLE);
+//                liveResult.setText(String.valueOf(d));
+//
+//            }
+//
+//            else
+//                liveResult.setVisibility(View.INVISIBLE);
+//
 
             // Application is responsible for releasing the point cloud resources after
             // using it.

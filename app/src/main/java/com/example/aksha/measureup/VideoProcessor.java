@@ -301,7 +301,7 @@ public class VideoProcessor {
         double[] world2 = new double[3];
         measureRealXYZ(intrinsicFocal, distanceM, first2.get(0), last2.get(0), world1);
         measureRealXYZ(intrinsicFocal, distanceM, first2.get(1), last2.get(1), world2);
-        return Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2));
+        return Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2))*1.66;
     }
 
     public void translationMatrix (Mat matrix64F, double distanceM) {
