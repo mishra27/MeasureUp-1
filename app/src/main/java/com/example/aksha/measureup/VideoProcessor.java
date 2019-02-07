@@ -4,17 +4,27 @@ import android.graphics.Bitmap;
 import android.util.Log;
 
 import org.opencv.android.Utils;
+import org.opencv.calib3d.Calib3d;
+import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.CvType;
+import org.opencv.core.DMatch;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.TermCriteria;
+import org.opencv.features2d.DescriptorExtractor;
+import org.opencv.features2d.DescriptorMatcher;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.Features2d;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
@@ -22,12 +32,14 @@ import org.opencv.video.Video;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
 import static android.media.MediaMetadataRetriever.OPTION_CLOSEST;
+import static org.opencv.imgcodecs.Imgcodecs.CV_LOAD_IMAGE_COLOR;
 
 public class VideoProcessor {
     //
@@ -64,6 +76,11 @@ public class VideoProcessor {
 
     private int numOfFrame_; // run frameGrab first
     FFmpegMediaMetadataRetriever mmr_;
+    private Mat fundamentalMatrix;
+    private Mat essentialMatix;
+    private Mat r;
+    private Mat t;
+
 
     public VideoProcessor(File videoFile) {
 
@@ -117,6 +134,7 @@ public class VideoProcessor {
             prevImg = frames_.get(i);
             nextImg = frames_.get(i+1);
             Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_);
+            
             List<Point> outPtsList = new ArrayList<>(nextPts.toList());
             outPtsList.clear();
             // select good points
@@ -250,6 +268,119 @@ public class VideoProcessor {
 //        Imgcodecs.imwrite(path + "/gray.jpg", gray);
     }
 
+    public void matching(){
+
+        Mat first = getFirstFrame();
+        Mat last = getLastFrame();
+
+        double hessianThreshold = 400;
+        int nOctaves = 4, nOctaveLayers = 3;
+        boolean extended = false, upright = false;
+        MatOfKeyPoint objectKeyPoints = new MatOfKeyPoint();
+        FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.AKAZE);
+        featureDetector.detect(first, objectKeyPoints);
+        KeyPoint[] keypoints = objectKeyPoints.toArray();
+
+        MatOfKeyPoint objectDescriptors = new MatOfKeyPoint();
+        DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.AKAZE);
+        descriptorExtractor.compute(first, objectKeyPoints, objectDescriptors);
+
+
+        Mat outputImage = new Mat(first.rows(), first.cols(), CV_LOAD_IMAGE_COLOR);
+        Scalar newKeypointColor = new Scalar(255, 0, 0);
+
+        Features2d.drawKeypoints(first, objectKeyPoints, outputImage, newKeypointColor, 0);
+
+
+        // Match object image with the scene image
+        MatOfKeyPoint sceneKeyPoints = new MatOfKeyPoint();
+        MatOfKeyPoint sceneDescriptors = new MatOfKeyPoint();
+        System.out.println("Detecting key points in background image...");
+        featureDetector.detect(last, sceneKeyPoints);
+        System.out.println("Computing descriptors in background image...");
+        descriptorExtractor.compute(last, sceneKeyPoints, sceneDescriptors);
+
+        Mat matchoutput = new Mat(last.rows() * 2, last.cols() * 2, CV_LOAD_IMAGE_COLOR);
+        Scalar matchestColor = new Scalar(0, 255, 0);
+
+        List<MatOfDMatch> matches = new LinkedList<MatOfDMatch>();
+        DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
+        System.out.println("Matching object and scene images...");
+        descriptorMatcher.knnMatch(objectDescriptors, sceneDescriptors, matches, 2);
+
+        System.out.println("Calculating good match list...");
+        LinkedList<DMatch> goodMatchesList = new LinkedList<DMatch>();
+
+        float nndrRatio = 0.7f;
+
+        for (int i = 0; i < matches.size(); i++) {
+            MatOfDMatch matofDMatch = matches.get(i);
+            DMatch[] dmatcharray = matofDMatch.toArray();
+            DMatch m1 = dmatcharray[0];
+            DMatch m2 = dmatcharray[1];
+
+            if (m1.distance <= m2.distance * nndrRatio) {
+                goodMatchesList.addLast(m1);
+
+            }
+        }
+
+        if (goodMatchesList.size() >= 7) {
+            System.out.println("Object Found!!!");
+
+            List<KeyPoint> objKeypointlist = objectKeyPoints.toList();
+            List<KeyPoint> scnKeypointlist = sceneKeyPoints.toList();
+
+            LinkedList<Point> objectPoints = new LinkedList<>();
+            LinkedList<Point> scenePoints = new LinkedList<>();
+
+            for (int i = 0; i < goodMatchesList.size(); i++) {
+                objectPoints.addLast(objKeypointlist.get(goodMatchesList.get(i).queryIdx).pt);
+                scenePoints.addLast(scnKeypointlist.get(goodMatchesList.get(i).trainIdx).pt);
+            }
+
+            MatOfPoint2f objMatOfPoint2f = new MatOfPoint2f();
+            objMatOfPoint2f.fromList(objectPoints);
+            MatOfPoint2f scnMatOfPoint2f = new MatOfPoint2f();
+            scnMatOfPoint2f.fromList(scenePoints);
+
+            Mat homography = Calib3d.findHomography(objMatOfPoint2f, scnMatOfPoint2f, Calib3d.RANSAC, 3);
+
+            Mat obj_corners = new Mat(4, 1, CvType.CV_32FC2);
+            Mat scene_corners = new Mat(4, 1, CvType.CV_32FC2);
+
+            obj_corners.put(0, 0, new double[]{0, 0});
+            obj_corners.put(1, 0, new double[]{first.cols(), 0});
+            obj_corners.put(2, 0, new double[]{first.cols(), first.rows()});
+            obj_corners.put(3, 0, new double[]{0, first.rows()});
+
+            System.out.println("Transforming object corners to scene corners...");
+            Core.perspectiveTransform(obj_corners, scene_corners, homography);
+
+           // Mat img = Ip.imread(last, CV_LOAD_IMAGE_COLOR);
+
+//            Core.line(img, new Point(scene_corners.get(0, 0)), new Point(scene_corners.get(1, 0)), new Scalar(0, 255, 0), 4);
+//            Core.line(img, new Point(scene_corners.get(1, 0)), new Point(scene_corners.get(2, 0)), new Scalar(0, 255, 0), 4);
+//            Core.line(img, new Point(scene_corners.get(2, 0)), new Point(scene_corners.get(3, 0)), new Scalar(0, 255, 0), 4);
+//            Core.line(img, new Point(scene_corners.get(3, 0)), new Point(scene_corners.get(0, 0)), new Scalar(0, 255, 0), 4);
+
+            System.out.println("Drawing matches image...");
+            MatOfDMatch goodMatches = new MatOfDMatch();
+            goodMatches.fromList(goodMatchesList);
+
+            Features2d.drawMatches(first, objectKeyPoints, last, sceneKeyPoints, goodMatches, matchoutput, matchestColor, newKeypointColor, new MatOfByte(), 2);
+
+            saveFrame(999999999, outputImage);
+            saveFrame(99999999, matchoutput);
+            //saveFrame(9999999, img);
+
+        } else {
+            System.out.println("Object Not Found");
+        }
+
+    }
+
+
     public void grabFrameAsMat (long step, Mat frame) {
 
         Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
@@ -311,6 +442,7 @@ public class VideoProcessor {
         matrix64F.put(0, 0, row0);
         matrix64F.put(1, 0, row1);
         matrix64F.put(2, 0, row2);
+
     }
 
     public double intrinsicFocal (double opticalFocalM, double ccdHeightM, double imgHeight) {
@@ -333,6 +465,44 @@ public class VideoProcessor {
         worldXYZ[0] = x;
         worldXYZ[1] = y;
         worldXYZ[2] = z;
+        //matching();
+    }
+
+    private void computeFundamentalMatrix() {
+        MatOfPoint2f in = new MatOfPoint2f(firstPoint_, secondPoint_);
+        MatOfPoint2f out = new MatOfPoint2f(firstOutPoint_, secondOutPoint_);
+
+        fundamentalMatrix  = Calib3d.findFundamentalMat(in, out, Calib3d.FM_RANSAC, 3, 0.99);
+    }
+
+    private Mat computeEssentialMatrix(double intrinsicFocal) {
+        MatOfPoint2f in = new MatOfPoint2f(firstPoint_, secondPoint_);
+        MatOfPoint2f out = new MatOfPoint2f(firstOutPoint_, secondOutPoint_);
+
+        Mat cameraMatrix = getCameraParam(intrinsicFocal);
+        essentialMatix  = Calib3d.findEssentialMat(in, out, cameraMatrix );
+
+        return essentialMatix;
+    }
+
+    private void recoverPose(double intrinsicFocal){
+
+        MatOfPoint2f in = new MatOfPoint2f(firstPoint_, secondPoint_);
+        MatOfPoint2f out = new MatOfPoint2f(firstOutPoint_, secondOutPoint_);
+       // Calib3d.proje
+        Calib3d.recoverPose(computeEssentialMatrix( intrinsicFocal), in, out,getCameraParam(intrinsicFocal), r, t);
+    }
+
+    private Mat getCameraParam(double intrinsicFocal) {
+
+        Mat cameraParam = new Mat();
+        double[] row0 = new double[]{intrinsicFocal, 0, 0};
+        double[] row1 = new double[]{0, intrinsicFocal, 0};
+        double[] row2 = new double[]{frameHeight_/2, frameWidth_/2, 1};
+        cameraParam.put(0, 0, row0);
+        cameraParam.put(1, 0, row1);
+        cameraParam.put(2, 0, row2);
+        return cameraParam;
     }
 
     // get properties
