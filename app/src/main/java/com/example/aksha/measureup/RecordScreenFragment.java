@@ -1,7 +1,6 @@
 package com.example.aksha.measureup;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -24,7 +23,6 @@ import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseIntArray;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
@@ -36,8 +34,6 @@ import android.widget.ToggleButton;
 
 import com.example.aksha.db.models.VideoObject;
 import com.example.aksha.db.viewmodels.VideoObjectViewModel;
-import com.example.aksha.videoRecorder.RecordButtonView;
-import com.example.aksha.videoRecorder.VideoRecorder;
 import com.example.common.helpers.CameraPermissionHelper;
 import com.example.common.helpers.DisplayRotationHelper;
 import com.example.common.helpers.SnackbarHelper;
@@ -51,9 +47,7 @@ import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Frame;
 import com.google.ar.core.PointCloud;
-import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
-import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
@@ -74,6 +68,7 @@ import java.io.PrintWriter;
 import java.nio.IntBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -92,7 +87,7 @@ import androidx.navigation.Navigation;
 
 import static android.app.Activity.RESULT_OK;
 
-public class RecordScreenFragment extends Fragment implements GLSurfaceView.Renderer {
+public class RecordScreenFragment extends Fragment implements GLSurfaceView.Renderer  {
     private static final String TAG = MainActivity.class.getSimpleName();
 
 
@@ -148,6 +143,15 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_PERMISSIONS = 10;
 
+    double initialCameraX = 0.0;
+    double initialCameraY = 0.0;
+    double initialCameraZ = 0.0;
+
+
+    double finalCameraX = 0.0;
+    double finalCameraY = 0.0;
+    double finalCameraZ = 0.0;
+
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
@@ -157,6 +161,8 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
     private MediaProjectionManager mProjectionManager;
     private double finalDist;
+    private float[] camera1;
+    private float[] camera2;
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -187,8 +193,9 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         // Inflate the layout for this fragment
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().hide();
 
+        View view = inflater.inflate(R.layout.fragment_record_screen, container, false);
 
-        return inflater.inflate(R.layout.fragment_record_screen, container, false);
+        return view;
     }
 
     @Override
@@ -297,6 +304,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             @Override
             public void onClick(View view) {
 
+                result.setText("");
                 if(!mCheckBox.isChecked()){
                     mMediaRecorder.reset();
                     stopScreenSharing();
@@ -322,12 +330,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                     File dir = videoFile.getParentFile();
                     currentVideoPath = videoFile.getPath();
 
-                    try (PrintWriter out = new PrintWriter(Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_PICTURES) + "/.MeasureUp/filePath.txt")) {
-                        out.println(currentVideoPath);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
+
 
                     if (!dir.exists()) {
                         dir.mkdirs();
@@ -455,8 +458,8 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         GLES20.glViewport(0, 0, width, height);
     }
 
-    public static String saveThumbnail(Mat frame, String parent) {
-        String path = parent + "/thumbnail.jpg";
+    public static String saveThumbnail(Mat frame, String parent, String name) {
+        String path = parent + "/" + name +".jpg";
         Log.d("FILE NAME ", path);
         Imgcodecs.imwrite(path, frame);
 
@@ -546,10 +549,17 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             // Get projection matrix.
             float[] projmtx = new float[16];
             camera.getProjectionMatrix(projmtx, 0, 0.1f, 100.0f);
+              //          Log.d("Projection ", Arrays.toString(projmtx));
+
+
+
 
             // Get camera matrix and draw.
             float[] viewmtx = new float[16];
             camera.getViewMatrix(viewmtx, 0);
+
+            //Log.d("Projection ", Arrays.toString(viewmtx));
+
 
             // Compute lighting from average intensity of the image.
             final float lightIntensity = frame.getLightEstimate().getPixelIntensity();
@@ -569,32 +579,69 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                     Log.d("asda", "popopop ");
                     firstTime =  false;
 
+                    initialCameraX = camera.getPose().tx();
+                    initialCameraY = camera.getPose().ty();
+                    initialCameraZ = camera.getPose().tz();
                     // save thumbnail
                     Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
                     Mat newframe = getMat(mBitmap);
                     currentThumbnailPath = saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName);
+                            Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, "thumbnail");
 
                     initial = getDistance(camera);
+                    camera1 = new float[16];
+                    camera.getDisplayOrientedPose().toMatrix(camera1, 0);
+                    //camera.getViewMatrix(camera1, 0);
+
+                    
                 }
             } else if (last) {
-                double distance = Math.abs(getDistance(camera) - initial);
+                finalCameraX = camera.getPose().tx();
+                finalCameraY = camera.getPose().ty();
+                finalCameraZ = camera.getPose().tz();
 
+                double distance = Math.sqrt(Math.pow((initialCameraX-finalCameraX), 2) +
+                        Math.pow((initialCameraY-finalCameraY), 2) +
+                        Math.pow((initialCameraZ-finalCameraZ), 2));
+
+                finalDist = Math.round(distance * 100.0) / 100.0;
+                //double distance = Math.abs(getDistance(camera) - initial);
+
+                result.setText("Distance Moved " + Double.toString(distance*100) + " cm");
                 last = false;
                 firstTime = true;
                 initial = 0;
 
-                finalDist = distance;
+               // finalDist = distance;
+                camera2 = new float[16];
+                camera.getDisplayOrientedPose().toMatrix(camera2, 0);
+                //camera.getViewMatrix(camera2, 0);
 
                 currentVideoObject = new VideoObject(currentFileName);
                 currentVideoObject.setVideoPath(currentVideoPath);
                 currentVideoObject.setThumbnailPath(currentThumbnailPath);
-                currentVideoObject.setMoveDistance(finalDist);
+                currentVideoObject.setMoveDistance(finalDist*100);
+
+//                Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
+//                Mat newframe = getMat(mBitmap);
+//                currentThumbnailPath = saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
+//                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, "lastFrame");
+
+                try (PrintWriter out = new PrintWriter(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName+ "/matrix.txt")) {
+                    //out.println(currentVideoPath);
+                    out.println(Arrays.toString(camera1));
+                    out.println(Arrays.toString(camera2));
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
 
                 //last = false;
 
                 Log.d("Distances ", Double.toString(finalDist) );
-                result.setText("Distance Moved " + Double.toString(finalDist) + " cm");
+
 
                 Message msg = handler.obtainMessage(0, currentVideoObject);
                 msg.sendToTarget();
@@ -836,5 +883,6 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             }
         }
     }
+
 
 }

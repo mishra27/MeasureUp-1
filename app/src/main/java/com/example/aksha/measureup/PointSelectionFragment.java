@@ -8,6 +8,8 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.util.Log;
 import android.util.SizeF;
 import android.view.LayoutInflater;
@@ -16,6 +18,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.aksha.db.models.Measurement;
 import com.example.aksha.db.models.VideoObject;
@@ -171,7 +174,7 @@ public class PointSelectionFragment extends Fragment {
         SizeF sizeF = getCameraResolution(0);
         double oFM = getFocalLength(0) / 1000;
         double ccdH = getCameraResolution(0).getWidth() / 1000;
-        double results = vp.measurement(oFM, ccdH, refDistance, iniPoints, finalPoints);
+        double[] results = vp.measurement(oFM, ccdH, refDistance, iniPoints, finalPoints);
 //        */
 
         VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
@@ -184,11 +187,30 @@ public class PointSelectionFragment extends Fragment {
             Measurement measurement = new Measurement();
             measurement.setName("Measurement");
             measurement.setObjectId(videoObject.getId());
-            measurement.setLength(results);
+            measurement.setLength(results[1]);
             measurement.setX1(p1.x / width);
             measurement.setX2(p2.x / width);
             measurement.setY1(p1.y / height);
             measurement.setY2(p2.y / height);
+
+            final Toast mToast =Toast.makeText(getActivity(),
+                    String.valueOf(results[0]) + " m", Toast.LENGTH_LONG);
+            int toastDuration = 15000; // in MilliSeconds
+            //Toast mToast = Toast.makeText(this, "My text", Toast.LENGTH_LONG);
+            CountDownTimer countDownTimer;
+            countDownTimer = new CountDownTimer(toastDuration, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    mToast.show();
+                }
+
+                public void onFinish() {
+                    mToast.cancel();
+                }
+            };
+
+           // mToast.show();
+            countDownTimer.start();
+
 
             new MeasurementSaveDialog(this.getContext(), measurement, measurementViewModel,
                     Navigation.findNavController(this.getActivity(), R.id.fragment)).show();

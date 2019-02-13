@@ -21,6 +21,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.TermCriteria;
+import org.opencv.features2d.AKAZE;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
@@ -30,11 +31,13 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
@@ -80,6 +83,9 @@ public class VideoProcessor {
     private Mat essentialMatix;
     private Mat r;
     private Mat t;
+    private MatOfKeyPoint inliers1;
+    private MatOfKeyPoint inliers2;
+
 
 
     public VideoProcessor(File videoFile) {
@@ -423,25 +429,28 @@ public class VideoProcessor {
         initPts.fromList(corners.toList());
     }
 
-    public  double measurement (double opticalFocalM, double ccdHeigthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
+    public  double[] measurement (double opticalFocalM, double ccdHeigthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
+        double[] ansArr = new double[2];
         double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdHeigthM, frameHeight_);
-        Mat translationMatrix = new Mat(3, 1, CvType.CV_64F);
-        translationMatrix(translationMatrix, distanceM);
+        Mat translationMatrix = translationMatrix(distanceM);
+
         ArrayList<Point> outputPoint = new ArrayList<Point>();
         double[] world1 = new double[3];
         double[] world2 = new double[3];
-        measureRealXYZ(intrinsicFocal, distanceM, first2.get(0), last2.get(0), world1);
+        double ans = measureRealXYZ(intrinsicFocal, distanceM, first2.get(0), last2.get(0), world1);
         measureRealXYZ(intrinsicFocal, distanceM, first2.get(1), last2.get(1), world2);
-        return Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2))*1.66;
+
+        featureMatching(firstFrame_, lastFrame_);
+        ansArr[0] = Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2));
+        ansArr[1] = ans;
+
+        return ansArr;
     }
 
-    public void translationMatrix (Mat matrix64F, double distanceM) {
-        double[] row0 = new double[]{1, 0, 0, distanceM};
-        double[] row1 = new double[]{0, 1, 0, 0};
-        double[] row2 = new double[]{0, 0, 1, 0};
-        matrix64F.put(0, 0, row0);
-        matrix64F.put(1, 0, row1);
-        matrix64F.put(2, 0, row2);
+    public Mat translationMatrix ( double distanceM) {
+        Mat matrix64F = Mat.eye(3, 4, CvType.CV_64F);
+        matrix64F.put(0, 3, distanceM);
+        return matrix64F;
 
     }
 
@@ -449,7 +458,7 @@ public class VideoProcessor {
         return opticalFocalM * imgHeight / ccdHeightM;
     }
 
-    public void measureRealXYZ(double intrinsicFocalM, double distanceM, Point imgXYL, Point imgXYR, double[] worldXYZ) {
+    public double measureRealXYZ(double intrinsicFocalM, double distanceM, Point imgXYL, Point imgXYR, double[] worldXYZ) {
         double z =
                 intrinsicFocalM * intrinsicFocalM * distanceM/
                         (imgXYR.x *
@@ -465,6 +474,112 @@ public class VideoProcessor {
         worldXYZ[0] = x;
         worldXYZ[1] = y;
         worldXYZ[2] = z;
+
+        Mat input1 = new Mat(2, 2, CvType.CV_64F);
+
+        input1.put(0,0, firstPoint_.x);
+        input1.put(1,0, firstPoint_.y);
+
+        input1.put(0,1,secondPoint_.x);
+        input1.put(1,1,secondPoint_.y);
+
+        Mat input2 = new Mat(2, 2, CvType.CV_64F);
+
+        input2.put(0,0, firstOutPoint_.x);
+        input2.put(1,0, firstOutPoint_.y);
+
+        input2.put(0,1,secondOutPoint_.x);
+        input2.put(1,1,secondOutPoint_.y);
+
+//        input2.put(0,0, firstOutPoint_.x, secondOutPoint_.x);
+//        input2.put(1,0, firstOutPoint_.y, secondOutPoint_.y);
+
+
+        Mat output = new Mat(4, 2, CvType.CV_64F);
+
+        int i = 1;
+        Mat cameraMat1 =  new Mat(3, 4, CvType.CV_64F);
+        Mat cameraMat2 =  new Mat(3, 4, CvType.CV_64F);
+
+        try {
+            File file =
+                    new File(videoFile_.getParent()+ "/matrix.txt");
+
+            Scanner sc = new Scanner(file);
+
+            while (sc.hasNextLine()) {
+                String camera = (sc.nextLine());
+                camera = camera.replace("[", "");
+                camera = camera.replace("]", "");
+                camera = camera.replace("[", "");
+                String[] array = camera.split(",");
+                int l = 0;
+                if(i == 1){
+                    for(int j= 0; j <4; j++){
+                        for(int k = 0; k<3; k++){
+                            cameraMat1.put(k,j, Float.valueOf(array[l]) );
+                            Log.d("valu ", array[l]);
+
+                            l++;
+                            if((l+1)%4 == 0)
+                                l++;
+                        }
+                    }
+
+                    l=0;
+                    i++;
+                }
+
+                else{
+                    for(int j= 0; j <4; j++){
+                        for(int k = 0; k<3; k++){
+                            cameraMat2.put(k, j, Float.valueOf(array[l]) );
+
+                            l++;
+                            if((l+1)%4 == 0)
+                                l++;
+                        }
+                    }
+
+                    l=0;
+                    i=1;
+                }
+            }
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        Calib3d.triangulatePoints(cameraMat1, cameraMat2, input1, input2, output);
+
+
+        double x1 = output.get(0, 0)[0]/output.get(3, 0)[0];
+        double x2 = output.get(0, 1)[0]/output.get(3, 1)[0];
+
+        double y1 = output.get(1, 0)[0]/output.get(3, 0)[0];
+        double y2 = output.get(1, 1)[0]/output.get(3, 1)[0];
+
+        double z1 = output.get(2, 0)[0]/output.get(3, 0)[0];
+        double z2 = output.get(2, 1)[0]/output.get(3, 1)[0];
+
+        Log.d("x1 " ,String.valueOf(output.get(0, 0)[0]/output.get(3, 0)[0]));
+        Log.d("x2 " ,String.valueOf(output.get(0, 1)[0]/output.get(3, 1)[0]));
+
+        Log.d("y1 " ,String.valueOf(output.get(1, 0)[0]/output.get(3, 0)[0]));
+        Log.d("y2 " ,String.valueOf(output.get(1, 1)[0]/output.get(3, 1)[0]));
+
+        Log.d("z1 " ,String.valueOf(output.get(2, 0)[0]/output.get(3, 0)[0]));
+        Log.d("z2 " ,String.valueOf(output.get(2, 1)[0]/output.get(3, 1)[0]));
+
+        double ans  = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1 - y2, 2) + Math.pow(z1-z2,2))*distanceM;
+
+        Log.d("ans ", String.valueOf(ans));
+
+
+        Log.d("dist ", String.valueOf(distanceM));
+
+        return ans;
+
         //matching();
     }
 
@@ -476,11 +591,11 @@ public class VideoProcessor {
     }
 
     private Mat computeEssentialMatrix(double intrinsicFocal) {
-        MatOfPoint2f in = new MatOfPoint2f(firstPoint_, secondPoint_);
-        MatOfPoint2f out = new MatOfPoint2f(firstOutPoint_, secondOutPoint_);
+//        MatOfPoint2f in = new MatOfPoint2f(firstPoint_, secondPoint_);
+//        MatOfPoint2f out = new MatOfPoint2f(firstOutPoint_, secondOutPoint_);
 
         Mat cameraMatrix = getCameraParam(intrinsicFocal);
-        essentialMatix  = Calib3d.findEssentialMat(in, out, cameraMatrix );
+        essentialMatix  = Calib3d.findEssentialMat(inliers1, inliers2, cameraMatrix );
 
         return essentialMatix;
     }
@@ -490,20 +605,41 @@ public class VideoProcessor {
         MatOfPoint2f in = new MatOfPoint2f(firstPoint_, secondPoint_);
         MatOfPoint2f out = new MatOfPoint2f(firstOutPoint_, secondOutPoint_);
        // Calib3d.proje
-        Calib3d.recoverPose(computeEssentialMatrix( intrinsicFocal), in, out,getCameraParam(intrinsicFocal), r, t);
+        Calib3d.recoverPose(computeEssentialMatrix( intrinsicFocal), inliers1, inliers2,getCameraParam(intrinsicFocal), r, t);
     }
 
     private Mat getCameraParam(double intrinsicFocal) {
 
-        Mat cameraParam = new Mat();
-        double[] row0 = new double[]{intrinsicFocal, 0, 0};
-        double[] row1 = new double[]{0, intrinsicFocal, 0};
-        double[] row2 = new double[]{frameHeight_/2, frameWidth_/2, 1};
-        cameraParam.put(0, 0, row0);
-        cameraParam.put(1, 0, row1);
-        cameraParam.put(2, 0, row2);
+        Mat cameraParam =  Mat.zeros(3, 3, CvType.CV_64F);
+        cameraParam.put(0,0, intrinsicFocal);
+        cameraParam.put(0,2, frameHeight_/2);
+        cameraParam.put(1,1, intrinsicFocal);
+        cameraParam.put(1,2, frameWidth_/2);
+        cameraParam.put(2,2, 1);
+
+
+        //Log.d("outpput ", String.valueOf(cameraParam.get(0,1).to));
         return cameraParam;
     }
+
+    private Mat getPrjectionMatrix2(double intrinsicFocal, double distanceM) {
+
+        Mat cameraParam = getCameraParam(intrinsicFocal);
+        Mat translationMatrix = translationMatrix(distanceM);
+        Mat matrix64F;
+        matrix64F= cameraParam.mul(translationMatrix);
+         return matrix64F;
+    }
+
+    private Mat getPrjectionMatrix1(double intrinsicFocal) {
+
+        Mat cameraParam = getCameraParam(intrinsicFocal);
+        Mat translationMatrix = translationMatrix(0);
+        Mat matrix64F;
+        matrix64F = cameraParam.mul(translationMatrix);
+        return matrix64F;
+    }
+
 
     // get properties
     public ArrayList<Mat> getFrames() {
@@ -559,6 +695,64 @@ public class VideoProcessor {
         firstPoint_.y = init1.y;
         secondPoint_.x = init2.x;
         secondPoint_.y = init2.y;
+    }
+
+    public void featureMatching(Mat img1, Mat img2){
+
+        // We create AKAZE and detect and compute AKAZE keypoints and descriptors.
+        // Since we don't need the mask parameter, noArray() is used.
+        AKAZE akaze = AKAZE.create();
+        MatOfKeyPoint kpts1 = new MatOfKeyPoint(), kpts2 = new MatOfKeyPoint();
+        Mat desc1 = new Mat(), desc2 = new Mat();
+        akaze.detectAndCompute(img1, new Mat(), kpts1, desc1);
+        akaze.detectAndCompute(img2, new Mat(), kpts2, desc2);
+
+        // Use brute-force matcher to find 2-nn matches
+        // We use Hamming distance, because AKAZE uses binary descriptor by default.
+        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+        List<MatOfDMatch> knnMatches = new ArrayList<>();
+        matcher.knnMatch(desc1, desc2, knnMatches, 2);
+
+        //Use 2-nn matches and ratio criterion to find correct keypoint matches
+        float ratioThreshold = 0.8f; // Nearest neighbor matching ratio
+        List<KeyPoint> listOfMatched1 = new ArrayList<>();
+        List<KeyPoint> listOfMatched2 = new ArrayList<>();
+        List<KeyPoint> listOfKeypoints1 = kpts1.toList();
+        List<KeyPoint> listOfKeypoints2 = kpts2.toList();
+        for (int i = 0; i < knnMatches.size(); i++) {
+            DMatch[] matches = knnMatches.get(i).toArray();
+            float dist1 = matches[0].distance;
+            float dist2 = matches[1].distance;
+            if (dist1 < ratioThreshold * dist2) {
+                listOfMatched1.add(listOfKeypoints1.get(matches[0].queryIdx));
+                listOfMatched2.add(listOfKeypoints2.get(matches[0].trainIdx));
+            }
+        }
+
+        List<DMatch> listOfGoodMatches = new ArrayList<>();
+
+        listOfGoodMatches.add(new DMatch(listOfMatched1.size(), listOfMatched2.size(), 0));
+
+        Mat res = new Mat();
+         inliers1 = new MatOfKeyPoint(listOfMatched1.toArray(new KeyPoint[listOfMatched1.size()]));
+         inliers2 = new MatOfKeyPoint(listOfMatched2.toArray(new KeyPoint[listOfMatched2.size()]));
+        MatOfDMatch goodMatches = new MatOfDMatch(listOfGoodMatches.toArray(new DMatch[listOfGoodMatches.size()]));
+        //Features2d.drawMatches
+        //Features2d.drawMatches(img1, inliers1, img2, inliers2, goodMatches, res);
+        Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result.png", res);
+        double inlierRatio = listOfMatched1.size() / (double) listOfMatched1.size();
+        System.out.println("A-KAZE Matching Results");
+        System.out.println("*******************************");
+        System.out.println("# Keypoints 1:                        \t" + listOfKeypoints1.size());
+        System.out.println("# Keypoints 2:                        \t" + listOfKeypoints2.size());
+        System.out.println("# Matches:                            \t" + listOfMatched1.size());
+        System.out.println("# Inliers:                            \t" + listOfMatched1.size());
+        System.out.println("# Inliers Ratio:                      \t" + inlierRatio);
+//        HighGui.imshow("result", res);
+//        HighGui.waitKey();
+
+
+
     }
 
 }

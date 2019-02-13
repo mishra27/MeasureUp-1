@@ -56,10 +56,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="73dp"
             android:layout_marginBottom="356dp"
+            android:background="#FFF"
+            android:textSize="42dp"
+
             app:layout_constraintBottom_toTopOf="@+id/checkBox"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+
             tools:text="Distance Moved" />
 
         <com.example.aksha.videoRecorder.RecordButtonView
