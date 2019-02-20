@@ -11,29 +11,18 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".1"
-        >
+        android:layout_weight=".1">
 
         <TextView
             android:id="@+id/name"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center_horizontal"
             android:layout_marginTop="10dp"
+            android:gravity="center_horizontal"
             android:text="@string/hello_blank_fragment"
-            android:textSize="36sp">
-        </TextView>
+            android:textSize="36sp"></TextView>
 
-        <ImageButton
-            android:id="@+id/imageButton3"
-            android:layout_width="69dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="9dp"
-            android:layout_marginBottom="0dp"
-            android:onClick="deleteObject"
-            android:src="@android:drawable/ic_menu_delete" />
+
     </RelativeLayout>
 
     <RelativeLayout
@@ -49,6 +38,15 @@
         >
         </com.example.aksha.measureup.ThumbnailMeasurementView>
     </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/imageButton3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+
+        android:onClick="deleteObject"
+        android:src="@android:drawable/ic_menu_delete" />
 
     <RelativeLayout
         android:layout_width="match_parent"

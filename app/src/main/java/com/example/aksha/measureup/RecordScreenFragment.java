@@ -23,11 +23,16 @@ import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseIntArray;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -45,6 +50,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
+import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Session;
@@ -56,10 +62,12 @@ import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.videoio.VideoWriter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -137,11 +145,15 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     private MediaProjection mMediaProjection;
     private VirtualDisplay mVirtualDisplay;
     private MediaProjectionCallback mMediaProjectionCallback;
-    private ToggleButton mToggleButton;
-    private CheckBox mCheckBox;
+    private static ToggleButton mToggleButton;
+    private static Switch focusSwitch;
+    private static CheckBox mCheckBox;
+    private static ImageButton galleryOption;
+    private static ImageButton settingsOption;
     private MediaRecorder mMediaRecorder;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_PERMISSIONS = 10;
+
 
     double initialCameraX = 0.0;
     double initialCameraY = 0.0;
@@ -163,6 +175,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     private double finalDist;
     private float[] camera1;
     private float[] camera2;
+    private ArrayList<Bitmap> listMap;
 
     // Anchors created from taps used for object placing with a given color.
     private static class ColoredAnchor {
@@ -192,6 +205,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         ((AppCompatActivity) this.getActivity()).getSupportActionBar().hide();
+        //((AppCompatActivity) this.getActivity()).get.hide();
 
         View view = inflater.inflate(R.layout.fragment_record_screen, container, false);
 
@@ -209,6 +223,10 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+
+//        t.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         videoObjectViewModel = ViewModelProviders.of(getActivity()).get(VideoObjectViewModel.class);
 
@@ -255,7 +273,13 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                 (getContext().MEDIA_PROJECTION_SERVICE);
 
         mToggleButton = (ToggleButton) getView().findViewById(R.id.ToggleButton);
+        mToggleButton.setVisibility(View.INVISIBLE);
+
+        focusSwitch = (Switch) getView().findViewById(R.id.focusSwitch);
+
         mCheckBox = (CheckBox) getView().findViewById(R.id.checkBox);
+        galleryOption = getView().findViewById(R.id.imageButton);
+        settingsOption = getView().findViewById(R.id.imageButton2);
         mToggleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -367,6 +391,23 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
                 // Create the session.
                 session = new Session(/* context= */ this.getContext());
+                focusSwitch.setOnClickListener(new View.OnClickListener(){
+
+                    @Override
+                    public void onClick(View view) {
+
+                            //session = new Session(/* context= */ this.getContext());
+                            Config config = new Config(session);
+                            if (focusSwitch.isChecked()) {
+                                config.setFocusMode(Config.FocusMode.AUTO);
+                            } else {
+                                config.setFocusMode(Config.FocusMode.FIXED);
+                            }
+                            session.configure(config);
+                    }
+                });
+
+
 
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
@@ -571,6 +612,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
 //            draw(frame, camera.getTrackingState() == TrackingState.PAUSED,
 //                    viewmtx, projmtx, camera.getDisplayOrientedPose(), lightIntensity);
+           
 
             if ( mToggleButton.isChecked()) {
 
@@ -583,17 +625,20 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                     initialCameraY = camera.getPose().ty();
                     initialCameraZ = camera.getPose().tz();
                     // save thumbnail
+
+
                     Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
                     Mat newframe = getMat(mBitmap);
                     currentThumbnailPath = saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
                             Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, "thumbnail");
+
 
                     initial = getDistance(camera);
                     camera1 = new float[16];
                     camera.getDisplayOrientedPose().toMatrix(camera1, 0);
                     //camera.getViewMatrix(camera1, 0);
 
-                    
+
                 }
             } else if (last) {
                 finalCameraX = camera.getPose().tx();
@@ -798,6 +843,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
             int orientation = ORIENTATIONS.get(rotation + 90);
             mMediaRecorder.setOrientationHint(orientation);
             mMediaRecorder.prepare();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -884,5 +930,26 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
         }
     }
 
+    public static void myOnKeyDown(int key_code){
+        if(key_code == KeyEvent.KEYCODE_VOLUME_DOWN && mToggleButton.isChecked()){
+            mToggleButton.performClick();
+            mCheckBox.setVisibility(View.VISIBLE);
+            galleryOption.setVisibility(View.VISIBLE);
+            settingsOption.setVisibility(View.VISIBLE);
+            focusSwitch.setVisibility(View.VISIBLE);
+
+        }
+        else if(key_code == KeyEvent.KEYCODE_VOLUME_DOWN && mCheckBox.isChecked()){
+            mCheckBox.setVisibility(View.INVISIBLE);
+            galleryOption.setVisibility(View.INVISIBLE);
+            settingsOption.setVisibility(View.INVISIBLE);
+            focusSwitch.setVisibility(View.INVISIBLE);
+            if(mCheckBox.getVisibility() == View.INVISIBLE)
+            mToggleButton.performClick();
+        }
+
+
+        //do whatever you want here
+    }
 
 }

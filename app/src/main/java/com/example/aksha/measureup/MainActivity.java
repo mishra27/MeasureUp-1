@@ -2,7 +2,9 @@ package com.example.aksha.measureup;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -25,15 +27,21 @@ public class MainActivity extends AppCompatActivity {
     VideoObjectViewModel videoObjectViewModel;
 
     // Load OpenCv native library
-    static {System.loadLibrary("opencv_java3");}
+    static {System.loadLibrary("opencv_java3");
 
-    @Override
+
+        }
+
+
+
+        @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         videoObjectViewModel = ViewModelProviders.of(this).get(VideoObjectViewModel.class);
+
 
         navController = Navigation.findNavController(this, R.id.fragment);
         NavigationUI.setupActionBarWithNavController(this, navController);
@@ -45,8 +53,11 @@ public class MainActivity extends AppCompatActivity {
         if (hasFocus) {
             // https://developer.android.com/training/system-ui/immersive.html#sticky
             Window w = this.getWindow();
-            w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+            w.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
             this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            w.getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         }
     }
 
@@ -115,7 +126,19 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+           RecordScreenFragment.myOnKeyDown(keyCode);
+
+           return true;
+            //and so on...
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
+
 
 
 
