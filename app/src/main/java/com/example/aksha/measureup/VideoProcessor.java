@@ -46,6 +46,7 @@ import wseemann.media.FFmpegMediaMetadataRetriever;
 
 import static android.media.MediaMetadataRetriever.OPTION_CLOSEST;
 import static org.opencv.core.CvType.CV_64F;
+import static org.opencv.imgproc.Imgproc.undistortPoints;
 //import static org.opencv.imgcodecs.Imgcodecs.CV_LOAD_IMAGE_COLOR;
 
 public class VideoProcessor {
@@ -453,11 +454,13 @@ public class VideoProcessor {
         initPts.fromList(corners.toList());
     }
 
-    public  double[] measurement (double opticalFocalM, double ccdHeigthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
+    public  double[] measurement (double opticalFocalM, double ccdWidthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
         double[] ansArr = new double[2];
-        double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdHeigthM, frameHeight_);
+        double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdWidthM, frameHeight_);
         Mat translationMatrix = translationMatrix(distanceM);
 
+        System.out.println(" param " + opticalFocalM + " " + ccdWidthM);
+        getCameraParam(intrinsicFocal);
         ArrayList<Point> outputPoint = new ArrayList<Point>();
         double[] world1 = new double[3];
         double[] world2 = new double[3];
@@ -637,12 +640,13 @@ public class VideoProcessor {
 
         Mat cameraParam =  Mat.zeros(3, 3, CV_64F);
         cameraParam.put(0,0, intrinsicFocal);
-        cameraParam.put(0,2, frameHeight_/2);
+        cameraParam.put(0,2, frameWidth_/2);
         cameraParam.put(1,1, intrinsicFocal);
-        cameraParam.put(1,2, frameWidth_/2);
+        cameraParam.put(1,2, frameHeight_/2);
         cameraParam.put(2,2, 1);
 
 
+        System.out.println("test " + cameraParam.dump());
 
         //Log.d("outpput ", String.valueOf(cameraParam.get(0,1).to));
         return cameraParam;
@@ -672,6 +676,7 @@ public class VideoProcessor {
         Mat m1 = Mat.zeros(3, 4, CvType.CV_64F);
 
         Core.gemm(cameraParam, identityMatric, 1, new Mat(), 0, m1, 0);
+
         System.out.println( " look " + m1.dump());
 
         return m1;
@@ -839,16 +844,16 @@ public class VideoProcessor {
 
         //firstFrame_, , , initPts1_
         Mat mask = new Mat(img1.rows(), img1.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask, firstPoint_, 80, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.circle(mask, secondPoint_, 80, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.circle(mask, firstPoint_, 120, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.circle(mask, secondPoint_, 120, new Scalar( 255, 255, 255), -1, 8, 0);
 
 //        Imgproc.goodFeaturesToTrack(img1, firstCorners_, 10, 0.3, 7.0, mask, 7);
         Mat cropped = new Mat();
         img1.copyTo(cropped, mask);
 
         Mat mask2 = new Mat(img2.rows(), img2.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask2, firstOutPoint_, 80, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.circle(mask2, secondOutPoint_, 80, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.circle(mask2, firstOutPoint_, 120, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.circle(mask2, secondOutPoint_, 120, new Scalar( 255, 255, 255), -1, 8, 0);
 
         Mat cropped2 = new Mat();
         img2.copyTo(cropped2, mask2);
@@ -858,8 +863,8 @@ public class VideoProcessor {
         //orb.setMaxFeatures(100);
         MatOfKeyPoint kpts1 = new MatOfKeyPoint(), kpts2 = new MatOfKeyPoint();
         Mat desc1 = new Mat(), desc2 = new Mat();
-        orb.detectAndCompute(img1, new Mat(), kpts1, desc1);
-        orb.detectAndCompute(img2, new Mat(), kpts2, desc2);
+        orb.detectAndCompute(cropped, new Mat(), kpts1, desc1);
+        orb.detectAndCompute(cropped2, new Mat(), kpts2, desc2);
 
         DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
 
@@ -892,6 +897,7 @@ public class VideoProcessor {
         // Find homography - here just used to perform match filtering with RANSAC, but could be used to e.g. stitch images
         // the smaller the allowed reprojection error (here 15), the more matches are filtered
         Mat Homog = Calib3d.findHomography(pts1Mat, pts2Mat, Calib3d.RANSAC, 15, outputMask, 2000, 0.995);
+
 
         // outputMask contains zeros and ones indicating which matches are filtered
         LinkedList<DMatch> better_matches = new LinkedList<DMatch>();
@@ -1000,25 +1006,75 @@ public class VideoProcessor {
 
       //  }
 
+        Mat cameraP = getCameraParam(intrinsicFocal);
+
 
         Mat firstFramePoints = Converters.vector_Point_to_Mat(p1s);
         Mat lastFramePoints = Converters.vector_Point_to_Mat(p2s);
 
 
+       // Mat pt1_norm = undistortPoints(firstFramePoints, cameraP, None);
 
-        Mat cameraP = getCameraParam(intrinsicFocal);
-        Mat E = Calib3d.findEssentialMat(firstFramePoints, lastFramePoints, cameraP);
+//        Mat E = Calib3d.findEssentialMat(firstFramePoints, lastFramePoints, cameraP);
+        Mat E =  Calib3d.findEssentialMat(firstFramePoints, lastFramePoints);
+
+
+        Mat r = new Mat(3, 3, CV_64F);
+        Mat t = new Mat(3, 1, CV_64F);
+
+        Calib3d.recoverPose(E, firstFramePoints, lastFramePoints,  cameraP, r, t );
+
+//        Mat R = new Mat(3,3,CvType.CV_64F);
+//        System.out.println(" rold \t" +  r.dump());
+//        System.out.println(" told \t" +  t.dump());
+//
+//        Calib3d.Rodrigues(r, R);
+//        R = R.t();
+//        Core.multiply(R, Scalar.all(-1), R);
+//
+//        Mat tt = new Mat(3,1,CvType.CV_64F);
+
+        System.out.println(" Eessen \t" +  E.dump());
+//
+//
+//        Core.gemm(R, t, 1, new Mat(), 0, tt, 0);
+//        Calib3d.Rodrigues(R, r);
+//
+//        System.out.println(" rnew \t" +  r.dump());
+//        System.out.println(" tnew \t" +  tt.dump());
+
+
+
+
+
+
+
+
+
+
+//        # Normalize for Esential Matrix calaculation
+//                pts_l_norm = cv2.undistortPoints(np.expand_dims(pts_l, axis=1), cameraMatrix=K_l, distCoeffs=None)
+//        pts_r_norm = cv2.undistortPoints(np.expand_dims(pts_r, axis=1), cameraMatrix=K_r, distCoeffs=None)
+//
+//        E, mask = cv2.findEssentialMat(pts_l_norm, pts_r_norm, focal=1.0, pp=(0., 0.), method=cv2.RANSAC, prob=0.999, threshold=3.0)
+//        points, R, t, mask = cv2.recoverPose(E, pts_l_norm, pts_r_norm)
+//
+//        M_r = np.hstack((R, t))
+//        M_l = np.hstack((np.eye(3, 3), np.zeros((3, 1))))
+//
+//        P_l = np.dot(K_l,  M_l)
+//        P_r = np.dot(K_r,  M_r)
+//        point_4d_hom = cv2.triangulatePoints(P_l, P_r, np.expand_dims(pts_l, axis=1), np.expand_dims(pts_r, axis=1))
+//        point_4d = point_4d_hom / np.tile(point_4d_hom[-1, :], (4, 1))
+//        point_3d = point_4d[:3, :].T
+
 
         saveFrame(0004, outputImg);
         saveFrame(0003, img1);
         saveFrame(0002, img2);
 
 
-        Mat r = new Mat(3, 3, CV_64F);
-        Mat t = new Mat(3, 1, CV_64F);
 
-
-        Calib3d.recoverPose(E, firstFramePoints, lastFramePoints, r, t );
 
         System.out.println( " rotate " + r.dump());
         System.out.println( " translate " + t.dump());
@@ -1040,6 +1096,7 @@ public class VideoProcessor {
         Core.gemm(getCameraParam(intrinsicFocal), r, 1, new Mat(), 0, p2, 0);
 
         Mat input1 = new Mat(2, 2, CV_64F);
+
 
         input1.put(0,0, firstPoint_.x);
         input1.put(1,0, firstPoint_.y);
@@ -1063,6 +1120,13 @@ public class VideoProcessor {
 
         Calib3d.triangulatePoints(p1, p2, input1, input2, output);
 
+//        Mat pot = new Mat();
+//        Calib3d.convertPointsFromHomogeneous(output, pot);
+        System.out.println( "4d " + output.dump());
+//        System.out.println( "3d " + pot.dump());
+
+
+
 
 
         double x1 = output.get(0, 0)[0]/output.get(3, 0)[0];
@@ -1085,12 +1149,13 @@ public class VideoProcessor {
 
         double ans  = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1 - y2, 2) + Math.pow(z1-z2,2))*distanceM;
 
-        Log.d("ans ", String.valueOf(ans*10));
+        Log.d("ans ", String.valueOf(ans));
 
 
         Log.d("dist ", String.valueOf(distanceM));
+        Log.d("focal ", String.valueOf(intrinsicFocal));
 
-        return ans*10;
+        return ans;
     }
 
     private double checkBlur(Mat img1) {
