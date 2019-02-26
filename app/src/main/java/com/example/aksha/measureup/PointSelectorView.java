@@ -80,30 +80,29 @@ public class PointSelectorView extends View {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-                final int pointerIndex = MotionEventCompat.getActionIndex(ev);
-                final float x = MotionEventCompat.getX(ev, pointerIndex);
-                final float y = MotionEventCompat.getY(ev, pointerIndex);
+                final int pointerIndex = ev.getActionIndex();
+                final float x = ev.getX(pointerIndex);
+                final float y = ev.getY(pointerIndex);
 
                 // Remember where we started (for dragging)
                 initialTouchX = x;
                 initialTouchY = y;
                 // Save the ID of this pointer (for dragging)
-                mActivePointerId = MotionEventCompat.getPointerId(ev, 0);
+                mActivePointerId = ev.getPointerId(0);
                 break;
             }
 
             case MotionEvent.ACTION_MOVE: {
                 // Find the index of the active pointer and fetch its position
-                final int pointerIndex =
-                        MotionEventCompat.findPointerIndex(ev, mActivePointerId);
+                final int pointerIndex = ev.findPointerIndex(mActivePointerId);
 
                 // getX and getY returns points relative to current view position
                 // see https://stackoverflow.com/questions/17530589/jumping-imageview-while-dragging-getx-and-gety-values-are-jumping
                 // since we are updating the x and y, getX and getY will return displacement from origin
                 // need to keep track of initial touch to maintain the place where touched as 'origin'
                 // reposition displacement so that initial touch is origin
-                final float dx = MotionEventCompat.getX(ev, pointerIndex) - initialTouchX;
-                final float dy = MotionEventCompat.getY(ev, pointerIndex) - initialTouchY;
+                final float dx = ev.getX(pointerIndex) - initialTouchX;
+                final float dy = ev.getY(pointerIndex) - initialTouchY;
 
                 View parent = (View) this.getParent();
 

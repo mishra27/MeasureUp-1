@@ -9,6 +9,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.util.SizeF;
@@ -25,7 +26,13 @@ import com.example.aksha.db.models.VideoObject;
 import com.example.aksha.db.viewmodels.MeasurementViewModel;
 import com.example.aksha.db.viewmodels.VideoObjectViewModel;
 
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -85,6 +92,9 @@ public class PointSelectionFragment extends Fragment {
                 imageView = getView().findViewById(R.id.imageView4);
                 Bitmap thumbnail = BitmapFactory.decodeFile(videoObject.getThumbnailPath());
                 imageView.setImageBitmap(thumbnail);
+
+
+
             }
         });
 
@@ -166,6 +176,27 @@ public class PointSelectionFragment extends Fragment {
         Point p1 = iniPoints.get(0);
         Point p2 = iniPoints.get(1);
 
+        VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
+
+        Bitmap thumbnail = BitmapFactory.decodeFile(videoObject.getThumbnailPath());
+
+        int w  = thumbnail.getWidth();
+        int h = thumbnail.getHeight();
+        Mat rgb = new Mat(h, w, CvType.CV_8UC4);
+        Utils.bitmapToMat(thumbnail, rgb);
+        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_BGR2RGB);
+
+        Imgproc.circle(rgb, p1, 1, new Scalar(0, 0, 255), 1);
+        Imgproc.circle(rgb, p2, 1, new Scalar(0, 0, 255), 1);
+
+
+
+        saveThumbnail(rgb, Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/.MeasureUp/", "lol");
+
+
+
+
 //        /*
         vp.grabFrames(false);
         vp.setInitPoints(p1, p2);
@@ -177,7 +208,6 @@ public class PointSelectionFragment extends Fragment {
         double[] results = vp.measurement(oFM, ccdH, refDistance, iniPoints, finalPoints);
 //        */
 
-        VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
 
         if (videoObject != null) {
             View parentView = (View) point1.getParent();
@@ -187,14 +217,14 @@ public class PointSelectionFragment extends Fragment {
             Measurement measurement = new Measurement();
             measurement.setName("Measurement");
             measurement.setObjectId(videoObject.getId());
-            measurement.setLength(results[1]);
+            measurement.setLength(results[0]);
             measurement.setX1(p1.x / width);
             measurement.setX2(p2.x / width);
             measurement.setY1(p1.y / height);
             measurement.setY2(p2.y / height);
 
             final Toast mToast =Toast.makeText(getActivity(),
-                    String.valueOf(results[0]) + " m", Toast.LENGTH_LONG);
+                    String.valueOf(results[1]) + " m", Toast.LENGTH_LONG);
             int toastDuration = 15000; // in MilliSeconds
             //Toast mToast = Toast.makeText(this, "My text", Toast.LENGTH_LONG);
             CountDownTimer countDownTimer;
@@ -226,4 +256,13 @@ public class PointSelectionFragment extends Fragment {
 
         //((AppCompatActivity) this.getActivity()).getSupportActionBar().show();
     }
+
+    public static String saveThumbnail(Mat frame, String parent, String name) {
+        String path = parent + "/" + name +".jpg";
+        Log.d("FILE NAME ", path);
+        Imgcodecs.imwrite(path, frame);
+
+        return path;
+    }
+
 }
