@@ -449,6 +449,9 @@ public class VideoProcessor {
         ansArr[0] = ans;
         ansArr[1] = orbDescriptor(firstFrameNew, lastFrame_, intrinsicFocal, distanceM);
 
+        System.out.println("ans old "+ String.valueOf(Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2))));
+
+
         return ansArr;
     }
 
@@ -585,7 +588,7 @@ public class VideoProcessor {
 
         double ans  = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1 - y2, 2) + Math.pow(z1-z2,2));
 
-        Log.d("ans ", String.valueOf(ans));
+        Log.d("ans newest", String.valueOf(ans));
 
 
         Log.d("dist ", String.valueOf(distanceM));
