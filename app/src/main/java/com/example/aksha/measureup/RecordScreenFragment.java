@@ -50,6 +50,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
+import com.google.ar.core.CameraIntrinsics;
 import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
 import com.google.ar.core.PointCloud;
@@ -635,7 +636,21 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
                     initial = getDistance(camera);
                     camera1 = new float[16];
-                    camera.getDisplayOrientedPose().toMatrix(camera1, 0);
+                    camera.getDisplayOrientedPose().inverse().toMatrix(camera1, 0);
+
+
+
+//                    CameraIntrinsics cameraIntrinsics = camera.getImageIntrinsics();
+//                    float[] f = cameraIntrinsics.getFocalLength();
+//                    int[] p = cameraIntrinsics.getImageDimensions();
+//                     for(int i = 0; i< f.length; i++){
+//                         System.out.println("FOCAL" + f[i]);
+//                     }
+//
+//                    for(int i = 0; i< p.length; i++){
+//                        System.out.println("Princ " + p[i]);
+//                    }
+
                     //camera.getViewMatrix(camera1, 0);
 
 
@@ -659,7 +674,7 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
 
                // finalDist = distance;
                 camera2 = new float[16];
-                camera.getDisplayOrientedPose().toMatrix(camera2, 0);
+                camera.getDisplayOrientedPose().inverse().toMatrix(camera2, 0);
                 //camera.getViewMatrix(camera2, 0);
 
                 currentVideoObject = new VideoObject(currentFileName);
@@ -682,6 +697,10 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                     e.printStackTrace();
                 }
 
+                Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
+                Mat newframe = getMat(mBitmap);
+                saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, "last");
 
                 //last = false;
 

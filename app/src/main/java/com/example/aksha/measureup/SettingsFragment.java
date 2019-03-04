@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,6 +22,7 @@ public class SettingsFragment extends Fragment {
     private String secure;
     private String question;
     NavController navController;
+    Switch optical;
 
     @Nullable
     @Override
@@ -38,11 +40,36 @@ public class SettingsFragment extends Fragment {
 
         buttonPassword = view.findViewById(R.id.buttonPass);
         buttonQuestion = view.findViewById(R.id.buttonSec);
+        optical = view.findViewById(R.id.optical);
 
         SharedPreferences settings = this.getActivity().getSharedPreferences("PREFS", 0);
         secure = settings.getString("secure", "");
         question = settings.getString("question", "");
 
+
+        optical.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                SharedPreferences settings = SettingsFragment.this.getActivity().getSharedPreferences("PREFS", 0);
+                SharedPreferences.Editor editor = settings.edit();
+
+                if(optical.isChecked()) {
+
+                    editor.remove("optical");
+                    editor.putString("optical", "yes");
+                    editor.apply();
+                }
+
+                else{
+                    editor.remove("optical");
+                    editor.putString("optical", "no");
+                    editor.apply();
+                }
+
+
+            }
+        });
 
         buttonPassword.setOnClickListener(new View.OnClickListener() {
             @Override

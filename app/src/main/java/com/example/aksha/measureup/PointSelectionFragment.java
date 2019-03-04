@@ -2,6 +2,7 @@ package com.example.aksha.measureup;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.camera2.CameraAccessException;
@@ -57,6 +58,9 @@ public class PointSelectionFragment extends Fragment {
     private VideoProcessor vp = null;
 
     double refDistance = 0;
+    private ArrayList<Point> points = new ArrayList<>();
+    private String path;
+    private int count = 0;
 
     public PointSelectionFragment() {
     }
@@ -102,10 +106,32 @@ public class PointSelectionFragment extends Fragment {
         point2 = view.findViewById(R.id.pointSelectorView2);
         measureButton = view.findViewById(R.id.button12);
 
+
         measureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                SharedPreferences settings = PointSelectionFragment.this.getActivity().getSharedPreferences("PREFS", 0);
+                String optical = settings.getString("optical", "");
+                VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
+                path = videoObject.getThumbnailPath();
+
+
+
+                if(optical.equals("yes"))
                 onClickProcessor();
+
+                else if(count == 0){
+                    getMeasurePoints();
+                    Bitmap lastFrame = BitmapFactory.decodeFile(path.replaceAll("thumbnail", "last"));
+                    imageView.setImageBitmap(lastFrame);
+                    count++;
+                }
+
+                else{
+                    count = 0;
+                    onClickProcessor2();
+                }
+
 
                 // Navigation.findNavController(PointSelectionFragment.this.getView()).navigateUp();
             }
@@ -133,7 +159,6 @@ public class PointSelectionFragment extends Fragment {
     }
 
     public ArrayList<Point> getMeasurePoints() {
-        ArrayList<Point> points = new ArrayList<>();
 
         points.add(point1.getPoint());
         points.add(point2.getPoint());
@@ -178,7 +203,8 @@ public class PointSelectionFragment extends Fragment {
 
         VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
 
-        Bitmap thumbnail = BitmapFactory.decodeFile(videoObject.getThumbnailPath());
+        path = videoObject.getThumbnailPath();
+        Bitmap thumbnail = BitmapFactory.decodeFile(path);
 
         int w  = thumbnail.getWidth();
         int h = thumbnail.getHeight();
@@ -205,7 +231,7 @@ public class PointSelectionFragment extends Fragment {
         SizeF sizeF = getCameraResolution(0);
         double oFM = getFocalLength(0) / 1000;
         double ccdH = getCameraResolution(0).getWidth() / 1000;
-        double[] results = vp.measurement(oFM, ccdH, refDistance, iniPoints, finalPoints);
+        double[] results = vp.measurement(oFM, ccdH, refDistance, iniPoints, finalPoints, path);
 //        */
 
 
@@ -249,6 +275,83 @@ public class PointSelectionFragment extends Fragment {
         }
 
     }
+
+
+    public void onClickProcessor2() {
+        ArrayList<Point> iniPoints = getMeasurePoints();
+        ArrayList<Point> finalPoints = new ArrayList<>();
+        finalPoints.add(iniPoints.remove(2));
+        finalPoints.add(iniPoints.remove(2));
+        Point p1 = iniPoints.get(0);
+        Point p2 = iniPoints.get(1);
+        Point p3 = finalPoints.get(0);
+        Point p4 = finalPoints.get(1);
+
+        VideoObject videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
+
+        Bitmap thumbnail = BitmapFactory.decodeFile(videoObject.getThumbnailPath());
+        Bitmap last = BitmapFactory.decodeFile(videoObject.getThumbnailPath().replaceAll("thumbnail", "last"));
+
+
+        int w  = thumbnail.getWidth();
+        int h = thumbnail.getHeight();
+        Mat rgb = new Mat(h, w, CvType.CV_8UC4);
+        Utils.bitmapToMat(thumbnail, rgb);
+        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_BGR2RGB);
+
+        Imgproc.circle(rgb, p1, 5, new Scalar(123, 0, 255), 2);
+        Imgproc.circle(rgb, p2, 5, new Scalar(0, 0, 255), 2);
+
+        Mat rgb2 = new Mat(h, w, CvType.CV_8UC4);
+        Utils.bitmapToMat(last, rgb2);
+        Imgproc.cvtColor(rgb2, rgb2, Imgproc.COLOR_BGR2RGB);
+
+        Imgproc.circle(rgb2, p3, 5, new Scalar(123, 0, 255), 2);
+        Imgproc.circle(rgb2, p4, 5, new Scalar(0, 0, 255), 2);
+
+
+
+        saveThumbnail(rgb, Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/.MeasureUp/", "lol");
+        saveThumbnail(rgb2, Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES) + "/.MeasureUp/", "lol2");
+
+        videoObject = videoObjectViewModel.getCurrentVideoObject().getValue();
+
+        path = videoObject.getThumbnailPath();
+
+
+        SizeF sizeF = getCameraResolution(0);
+        double oFM = getFocalLength(0) / 1000;
+        double ccdH = getCameraResolution(0).getWidth() / 1000;
+        double[] results = vp.measurementNoOptical(oFM, ccdH, iniPoints, finalPoints, rgb.height(), rgb.width(),path, refDistance);
+
+        System.out.println("dimen " + rgb.height() + " " +rgb.width() + " " + oFM + "");
+//        */
+
+
+        if (videoObject != null) {
+            View parentView = (View) point1.getParent();
+            int width = parentView.getWidth();
+            int height = parentView.getHeight();
+
+            Measurement measurement = new Measurement();
+            measurement.setName("Measurement");
+            measurement.setObjectId(videoObject.getId());
+            measurement.setLength(results[0]);
+            measurement.setX1(p1.x / width);
+            measurement.setX2(p2.x / width);
+            measurement.setY1(p1.y / height);
+            measurement.setY2(p2.y / height);
+
+            new MeasurementSaveDialog(this.getContext(), measurement, measurementViewModel,
+                    Navigation.findNavController(this.getActivity(), R.id.fragment)).show();
+        } else {
+            Log.e("onClickProcessor", "videoObject is null!!!!");
+        }
+
+    }
+
 
     @Override
     public void onDestroyView() {

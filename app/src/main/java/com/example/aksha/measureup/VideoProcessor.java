@@ -1,6 +1,7 @@
 package com.example.aksha.measureup;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 //import org.bytedeco.javacv.FrameGrabber;
@@ -14,7 +15,6 @@ import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
-import org.opencv.core.MatOfDouble;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
@@ -23,7 +23,6 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.TermCriteria;
-import org.opencv.features2d.AKAZE;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.Features2d;
 import org.opencv.features2d.ORB;
@@ -35,7 +34,6 @@ import org.opencv.video.Video;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -46,6 +44,7 @@ import java.util.Scanner;
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
 import static android.media.MediaMetadataRetriever.OPTION_CLOSEST;
+import static org.opencv.calib3d.Calib3d.correctMatches;
 import static org.opencv.core.CvType.CV_64F;
 import static org.opencv.core.TermCriteria.COUNT;
 import static org.opencv.core.TermCriteria.EPS;
@@ -213,8 +212,6 @@ public class VideoProcessor {
 
         MatOfPoint2f prevPts2 = initPts2_;
         MatOfPoint2f nextPts2 = new MatOfPoint2f();
-
-
 
         firstOutPoint_ =  findNextGoodPoint(prevPts1, nextPts1, status1_);
         secondOutPoint_ = findNextGoodPoint(prevPts2, nextPts2, status2_);
@@ -432,22 +429,80 @@ public class VideoProcessor {
         initPts.fromList(corners.toList());
     }
 
-    public  double[] measurement (double opticalFocalM, double ccdWidthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2) {
+    public  double[] measurement (double opticalFocalM, double ccdWidthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2, String path) {
         double[] ansArr = new double[2];
         double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdWidthM, frameHeight_);
         Mat translationMatrix = translationMatrix(distanceM);
 
         System.out.println(" param " + opticalFocalM + " " + ccdWidthM);
         getCameraParam(intrinsicFocal);
+
+        System.out.println("opt " + opticalFocalM + " " +  ccdWidthM+ " " + frameHeight_ + " " + frameWidth_ + " " + intrinsicFocal);
+
         ArrayList<Point> outputPoint = new ArrayList<Point>();
         double[] world1 = new double[3];
         double[] world2 = new double[3];
         double ans = measureRealXYZ(intrinsicFocal, distanceM, first2.get(0), last2.get(0), world1);
         measureRealXYZ(intrinsicFocal, distanceM, first2.get(1), last2.get(1), world2);
 
-        featureMatching(firstFrame_, lastFrame_);
+        //featureMatching(firstFrame_, lastFrame_);
+
+
+        System.out.println("ans old "+ String.valueOf(Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2))));
+
+
+
+
         ansArr[0] = ans;
-        ansArr[1] = orbDescriptor(firstFrameNew, lastFrame_, intrinsicFocal, distanceM);
+        ansArr [1] = 0.0;
+
+
+
+        return ansArr;
+    }
+
+    public  double[] measurementNoOptical (double opticalFocalM, double ccdWidthM, ArrayList<Point> first2, ArrayList<Point> last2, double frameHeight, double frameWidth, String path, double distanceM) {
+
+//        Bitmap currentFrame = mmr_.getFrameAtTime(0, OPTION_CLOSEST);
+//        int height = currentFrame.getHeight();
+        double[] ansArr = new double[2];
+        double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdWidthM, frameHeight);
+
+        System.out.println("opt " + opticalFocalM + " " +  ccdWidthM+ " " + frameHeight + " " + frameWidth + " " + intrinsicFocal);
+
+        double anss = measureRealXYZNoOptical(intrinsicFocal, first2, last2,frameWidth, frameHeight);
+
+        Bitmap first = BitmapFactory.decodeFile(path);
+        Mat rgb1 = new Mat((int)frameHeight_, (int)frameWidth_, CvType.CV_8UC4);
+        Utils.bitmapToMat(first, rgb1);
+        Imgproc.cvtColor(rgb1, rgb1, Imgproc.COLOR_RGB2GRAY);
+
+        Bitmap lastFrame = BitmapFactory.decodeFile(path.replaceAll("thumbnail", "last"));
+        Mat rgb = new Mat((int)frameHeight_, (int)frameWidth_, CvType.CV_8UC4);
+        Utils.bitmapToMat(lastFrame, rgb);
+        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_RGB2GRAY);
+        ansArr[0] = orbDescriptor(rgb1, rgb, intrinsicFocal, distanceM, first2, last2, frameWidth, frameHeight);
+
+        ansArr[1] = anss;
+
+
+       // double[] ansArr = new double[2];
+       // double intrinsicFocal = intrinsicFocal(opticalFocalM, ccdWidthM, frameHeight_);
+        Mat translationMatrix = translationMatrix(distanceM);
+
+        System.out.println(" param " + opticalFocalM + " " + ccdWidthM);
+        getCameraParam(intrinsicFocal);
+
+        System.out.println("opt " + opticalFocalM + " " +  ccdWidthM+ " " + frameHeight_ + " " + frameWidth_ + " " + intrinsicFocal);
+
+        ArrayList<Point> outputPoint = new ArrayList<Point>();
+        double[] world1 = new double[3];
+        double[] world2 = new double[3];
+        double ans = measureRealXYZ(intrinsicFocal, distanceM, first2.get(0), last2.get(0), world1);
+        measureRealXYZ(intrinsicFocal, distanceM, first2.get(1), last2.get(1), world2);
+
+        //featureMatching(firstFrame_, lastFrame_);
+
 
         System.out.println("ans old "+ String.valueOf(Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2))));
 
@@ -467,37 +522,32 @@ public class VideoProcessor {
     }
 
     public double measureRealXYZ(double intrinsicFocalM, double distanceM, Point imgXYL, Point imgXYR, double[] worldXYZ) {
-        double z =
-                intrinsicFocalM * intrinsicFocalM * distanceM/
-                        (imgXYR.x *
-                                (0 * imgXYL.x +
-                                        0 * imgXYL.y +
-                                        1 * intrinsicFocalM) -
-                                intrinsicFocalM *
-                                        (1 * imgXYL.x +
-                                                0 * imgXYL.y +
-                                                0 * intrinsicFocalM));
-        double x = z * imgXYL.x / intrinsicFocalM;
-        double y = z * imgXYL.y / intrinsicFocalM;
-        worldXYZ[0] = x;
-        worldXYZ[1] = y;
-        worldXYZ[2] = z;
+
 
         Mat input1 = new Mat(2, 2, CV_64F);
 
         input1.put(0,0, firstPoint_.x);
         input1.put(1,0, firstPoint_.y);
 
+        System.out.println("first " + firstPoint_.x + " " + firstPoint_.y) ;
+
         input1.put(0,1,secondPoint_.x);
         input1.put(1,1,secondPoint_.y);
+        System.out.println("first2 " + secondPoint_.x + " " + secondPoint_.y) ;
+
 
         Mat input2 = new Mat(2, 2, CV_64F);
 
         input2.put(0,0, firstOutPoint_.x);
         input2.put(1,0, firstOutPoint_.y);
 
+        System.out.println("last " + firstOutPoint_.x + " " + firstOutPoint_.y) ;
+
+
         input2.put(0,1,secondOutPoint_.x);
         input2.put(1,1,secondOutPoint_.y);
+        System.out.println("last2 " + secondOutPoint_.x + " " + secondOutPoint_.y) ;
+
 
 //        input2.put(0,0, firstOutPoint_.x, secondOutPoint_.x);
 //        input2.put(1,0, firstOutPoint_.y, secondOutPoint_.y);
@@ -559,9 +609,34 @@ public class VideoProcessor {
             e.printStackTrace();
         }
 
+        System.out.println("tx " +(cameraMat2.get(0,3)[0]- cameraMat1.get(0,3)[0]));
+        System.out.println("tz " +(cameraMat2.get(2,3)[0]- cameraMat1.get(2,3)[0]));
+
+        double z = (intrinsicFocalM*((intrinsicFocalM*(cameraMat2.get(0,3)[0]- cameraMat1.get(0,3)[0])) - (imgXYR.x*(cameraMat2.get(2,3)[0]- cameraMat1.get(2,3)[0]))))/
+                (imgXYR.x*(intrinsicFocalM)- intrinsicFocalM*(imgXYL.x));
+//                intrinsicFocalM * intrinsicFocalM * distanceM/
+//                        (imgXYR.x *
+//                                (0 * imgXYL.x +
+//                                        0 * imgXYL.y +
+//                                        1 * intrinsicFocalM) -
+//                                intrinsicFocalM *
+//                                        (1 * imgXYL.x +
+//                                                0 * imgXYL.y +
+//                                                0 * intrinsicFocalM));
+        double x = z * imgXYL.x / intrinsicFocalM;
+        double y = z * imgXYL.y / intrinsicFocalM;
+        worldXYZ[0] = x;
+        worldXYZ[1] = y;
+        worldXYZ[2] = z;
+
         Mat para = getCameraParam(intrinsicFocalM);
         Core.gemm(para, cameraMat1, 1, new Mat(), 0, cameraMat1 , 0);
         Core.gemm(para, cameraMat2, 1, new Mat(), 0, cameraMat2 , 0);
+
+        System.out.println("cam0 " + para.dump());
+
+        System.out.println("cam1 " + cameraMat1.dump());
+        System.out.println("cam2 " + cameraMat2.dump());
 
 
         Calib3d.triangulatePoints(cameraMat1, cameraMat2, input1, input2, output);
@@ -596,6 +671,139 @@ public class VideoProcessor {
         return ans;
 
         //matching();
+    }
+
+    public double measureRealXYZNoOptical(double intrinsicFocalM, ArrayList<Point> first2, ArrayList<Point> last2, double width, double height) {
+
+        Mat input1 = new Mat(2, 2, CV_64F);
+
+        Point firstIn = first2.get(0);
+        Point secondIn = first2.get(1);
+
+        Point firstOut = last2.get(0);
+        Point secondOut = last2.get(1);
+
+
+        input1.put(0,0, (float) firstIn.x);
+        input1.put(1,0, (float)firstIn.y);
+
+        input1.put(0,1,(float)secondIn.x);
+        input1.put(1,1,(float)secondIn.y);
+
+        Mat input2 = new Mat(2, 2, CV_64F);
+
+        input2.put(0,0, (float)firstOut.x);
+        input2.put(1,0, (float)firstOut.y);
+
+        input2.put(0,1,(float)secondOut.x);
+        input2.put(1,1,(float)secondOut.y);
+
+
+        Mat output = new Mat(4, 2, CV_64F);
+
+        int i = 1;
+        Mat cameraMatO1 =  new Mat(3, 4, CV_64F);
+        Mat cameraMatO2 =  new Mat(3, 4, CV_64F);
+
+        try {
+            File file =
+                    new File(videoFile_.getParent()+ "/matrix.txt");
+
+            Scanner sc = new Scanner(file);
+
+            while (sc.hasNextLine()) {
+                String camera = (sc.nextLine());
+                camera = camera.replace("[", "");
+                camera = camera.replace("]", "");
+                camera = camera.replace("[", "");
+                String[] array = camera.split(",");
+                int l = 0;
+                if(i == 1){
+                    for(int j= 0; j <4; j++){
+                        for(int k = 0; k<3; k++){
+                            cameraMatO1.put(k,j, (float)Float.valueOf(array[l]) );
+                            Log.d("valu ", array[l]);
+
+                            l++;
+                            if((l+1)%4 == 0)
+                                l++;
+                        }
+                    }
+
+                    l=0;
+                    i++;
+                }
+
+                else{
+                    for(int j= 0; j <4; j++){
+                        for(int k = 0; k<3; k++){
+                            cameraMatO2.put(k, j, (float)Float.valueOf(array[l]) );
+
+                            l++;
+                            if((l+1)%4 == 0)
+                                l++;
+                        }
+                    }
+
+                    l=0;
+                    i=1;
+                }
+            }
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Mat para =  Mat.zeros(3, 3, CV_64F);
+        para.put(0,0, (float)intrinsicFocalM);
+        para.put(0,2, (float)width/2);
+        para.put(1,1, (float)intrinsicFocalM);
+        para.put(1,2, (float)height/2);
+        para.put(2,2, (float)1);
+
+
+
+
+        //Core.gemm(para, cameraMatO1, 1, new Mat(), 0, cameraMatO1 , 0);
+        //Core.gemm(para, cameraMatO2, 1, new Mat(), 0, cameraMatO2 , 0);
+
+        System.out.println("cam0 " + para.dump());
+        System.out.println("cam1 " + cameraMatO1.dump());
+        System.out.println("cam2 " + cameraMatO2.dump());
+
+
+
+        Calib3d.triangulatePoints(cameraMatO1, cameraMatO2, input1, input2, output);
+
+        //getPrjectionMatrix2(intrinsicFocalM, distanceM);
+
+        double x1 = output.get(0, 0)[0]/output.get(3, 0)[0];
+        double x2 = output.get(0, 1)[0]/output.get(3, 1)[0];
+
+        double y1 = output.get(1, 0)[0]/output.get(3, 0)[0];
+        double y2 = output.get(1, 1)[0]/output.get(3, 1)[0];
+
+        double z1 = output.get(2, 0)[0]/output.get(3, 0)[0];
+        double z2 = output.get(2, 1)[0]/output.get(3, 1)[0];
+
+        Log.d("x1 " ,String.valueOf(output.get(0, 0)[0]/output.get(3, 0)[0]));
+        Log.d("x2 " ,String.valueOf(output.get(0, 1)[0]/output.get(3, 1)[0]));
+
+        Log.d("y1 " ,String.valueOf(output.get(1, 0)[0]/output.get(3, 0)[0]));
+        Log.d("y2 " ,String.valueOf(output.get(1, 1)[0]/output.get(3, 1)[0]));
+
+        Log.d("z1 " ,String.valueOf(output.get(2, 0)[0]/output.get(3, 0)[0]));
+        Log.d("z2 " ,String.valueOf(output.get(2, 1)[0]/output.get(3, 1)[0]));
+
+        double ans  = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1 - y2, 2) + Math.pow(z1-z2,2));
+
+        Log.d("ans no Optical ", String.valueOf(ans));
+
+
+
+        return ans;
+
     }
 
     private void computeFundamentalMatrix() {
@@ -726,121 +934,21 @@ public class VideoProcessor {
         secondPoint_.y = init2.y;
     }
 
-    public void featureMatching(Mat img1, Mat img2){
-
-        // We create AKAZE and detect and compute AKAZE keypoints and descriptors.
-        // Since we don't need the mask parameter, noArray() is used.
-        AKAZE akaze = AKAZE.create();
-        MatOfKeyPoint kpts1 = new MatOfKeyPoint(), kpts2 = new MatOfKeyPoint();
-        Mat desc1 = new Mat(), desc2 = new Mat();
-        akaze.detectAndCompute(img1, new Mat(), kpts1, desc1);
-        akaze.detectAndCompute(img2, new Mat(), kpts2, desc2);
-
-
-
-        // Use brute-force matcher to find 2-nn matches
-        // We use Hamming distance, because AKAZE uses binary descriptor by default.
-        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
-        List<MatOfDMatch> knnMatches = new ArrayList<>();
-        matcher.knnMatch(desc1, desc2, knnMatches, 2);
-
-        //Use 2-nn matches and ratio criterion to find correct keypoint matches
-        float ratioThreshold = 0.8f; // Nearest neighbor matching ratio
-        List<KeyPoint> listOfMatched1 = new ArrayList<>();
-        List<KeyPoint> listOfMatched2 = new ArrayList<>();
-        List<KeyPoint> listOfKeypoints1 = kpts1.toList();
-        List<KeyPoint> listOfKeypoints2 = kpts2.toList();
-        for (int i = 0; i < knnMatches.size(); i++) {
-            DMatch[] matches = knnMatches.get(i).toArray();
-            float dist1 = matches[0].distance;
-            float dist2 = matches[1].distance;
-            if (dist1 < ratioThreshold * dist2) {
-                listOfMatched1.add(listOfKeypoints1.get(matches[0].queryIdx));
-                listOfMatched2.add(listOfKeypoints2.get(matches[0].trainIdx));
-            }
-        }
-
-        List<DMatch> listOfGoodMatches = new ArrayList<>();
-
-        listOfGoodMatches.add(new DMatch(listOfMatched1.size(), listOfMatched2.size(), 10));
-
-        Mat res = new Mat();
-         inliers1 = new MatOfKeyPoint(listOfMatched1.toArray(new KeyPoint[listOfMatched1.size()]));
-         inliers2 = new MatOfKeyPoint(listOfMatched2.toArray(new KeyPoint[listOfMatched2.size()]));
-        MatOfDMatch goodMatches = new MatOfDMatch(listOfGoodMatches.toArray(new DMatch[listOfGoodMatches.size()]));
-        //goodMatches.
-        //Features2d.drawMatches
-
-            Features2d.drawKeypoints(img1,inliers1, img1 );
-        Features2d.drawKeypoints(img2,inliers2, img2 );
-
-
-//        Features2d.drawMatches(img1, inliers1, img2, inliers2, goodMatches, res);
-       //   Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result1.png", img1);
-      //  Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result2.png", img2);
-
-        double inlierRatio = listOfMatched1.size() / (double) listOfMatched1.size();
-        System.out.println("A-KAZE Matching Results");
-        System.out.println("*******************************");
-        System.out.println("# Keypoints 1:                        \t" + listOfKeypoints1.size());
-        System.out.println("# Keypoints 2:                        \t" + listOfKeypoints2.size());
-        System.out.println("# Matches:                            \t" + listOfGoodMatches.size());
-        System.out.println("# Inliers:                            \t" + listOfMatched1.size());
-        System.out.println("# Inliers Ratio:                      \t" + listOfMatched2.size());
-        System.out.println("# Inliers Ratio:                      \t" + listOfMatched2.size());
-//        HighGui.imshow("result", res);
-//        HighGui.waitKey();
-
-
-
-    }
-
-
-
-//
-//    public void surfMatching(Mat img1, Mat img2){
-//
-//        double hessianThreshold = 400;
-//        int nOctaves = 4, nOctaveLayers = 3;
-//        boolean extended = false, upright = false;
-//        SURF  = SURF.create();
-//        SURF detector = SURF.create(hessianThreshold, nOctaves, nOctaveLayers, extended, upright);
-//        MatOfKeyPoint keypoints1 = new MatOfKeyPoint(), keypoints2 = new MatOfKeyPoint();
-//        Mat descriptors1 = new Mat(), descriptors2 = new Mat();
-//        detector.detectAndCompute(img1, new Mat(), keypoints1, descriptors1);
-//        detector.detectAndCompute(img2, new Mat(), keypoints2, descriptors2);
-//
-//        //-- Step 2: Matching descriptor vectors with a brute force matcher
-//        // Since SURF is a floating-point descriptor NORM_L2 is used
-//        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
-//        MatOfDMatch matches = new MatOfDMatch();
-//        matcher.match(descriptors1, descriptors2, matches);
-//
-//        //-- Draw matches
-//        Mat imgMatches = new Mat();
-//        Features2d.drawMatches(img1, keypoints1, img2, keypoints2, matches, imgMatches);
-//
-//        HighGui.imshow("Matches", imgMatches);
-//        HighGui.waitKey(0);
-//
-//
-//    }
-
-    public double orbDescriptor(Mat img1, Mat img2, double intrinsicFocal, double distanceM){
+    public double orbDescriptor(Mat img1, Mat img2, double intrinsicFocal, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2, double width, double height){
 
 
         //firstFrame_, , , initPts1_
         Mat mask = new Mat(img1.rows(), img1.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask, firstPoint_, 120, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.circle(mask, secondPoint_, 120, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.circle(mask, first2.get(0), 120, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.circle(mask, first2.get(1), 120, new Scalar( 255, 255, 255), -1, 8, 0);
 
-//        Imgproc.goodFeaturesToTrack(img1, firstCorners_, 10, 0.3, 7.0, mask, 7);
+        //Imgproc.goodFeaturesToTrack(img1, firstCorners_, 10, 0.3, 7.0, mask, 7);
         Mat cropped = new Mat();
         img1.copyTo(cropped, mask);
 
         Mat mask2 = new Mat(img2.rows(), img2.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask2, firstOutPoint_, 120, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.circle(mask2, secondOutPoint_, 120, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.circle(mask2, last2.get(0), 120, new Scalar( 255, 255, 255), -1, 8, 0);
+        Imgproc.circle(mask2, last2.get(1), 120, new Scalar( 255, 255, 255), -1, 8, 0);
 
         Mat cropped2 = new Mat();
         img2.copyTo(cropped2, mask2);
@@ -903,81 +1011,17 @@ public class VideoProcessor {
 
        // better_matches_mat.toList().get(0)
 
-
-
-
-//        BFMatcher bf = BFMatcher.create(NORM_HAMMING, true);
-//        MatOfDMatch obtainedMatches = new MatOfDMatch();
-//        bf.match(desc1,desc2, obtainedMatches);
-//
-//        Mat imgMatches = new Mat();
-//        obtainedMatches.fromList((obtainedMatches.toList().subList(0,50).sort());
-//        Features2d.drawMatches(cropped, kpts1, cropped2, kpts2,obtainedMatches , imgMatches);
-//
-
-//        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
-//        MatOfDMatch matches = new MatOfDMatch();
-//        matcher.match(desc1, desc2, matches);
-//
-//
-//
-//        Mat imgMatches = new Mat();
-//
-//
-//         Features2d.drawMatches(cropped, kpts1, cropped2, kpts2, matches, imgMatches);
-//
-//
-//        List<MatOfDMatch> knnMatches = new ArrayList<>();
-//        matcher.knnMatch(desc1, desc2, knnMatches, 2);
-//
-//        float ratioThreshold = 0.8f; // Nearest neighbor matching ratio
-//        List<KeyPoint> listOfMatched1 = new ArrayList<>();
-//        List<KeyPoint> listOfMatched2 = new ArrayList<>();
-//        List<KeyPoint> listOfKeypoints1 = kpts1.toList();
-//        List<KeyPoint> listOfKeypoints2 = kpts2.toList();
-////        for (int i = 0; i < knnMatches.size(); i++) {
-////            DMatch[] matches2 = knnMatches.get(i).toArray();
-////            float dist1 = matches2[0].distance;
-////            float dist2 = matches2[1].distance;
-////            if (dist1 < ratioThreshold * dist2) {
-////                listOfMatched1.add(listOfKeypoints1.get(matches2[0].queryIdx));
-////                listOfMatched2.add(listOfKeypoints2.get(matches2[0].trainIdx));
-////            }
-////        }
-//
-//
-//
-//        MatOfKeyPoint kpts01 = new MatOfKeyPoint(), kpts02 = new MatOfKeyPoint();
-//        kpts01.fromList(listOfKeypoints1);
-//        kpts02.fromList(listOfKeypoints2);
-//
-//        System.out.println("ANSWER " + listOfMatched1.size());
-//        System.out.println("ANSWER " + listOfMatched2.size());
-//
-//
-//        Features2d.drawKeypoints(cropped,kpts01, cropped );
-//        Features2d.drawKeypoints(cropped2,kpts02, cropped2 );
-//
-//        Features2d.drawMatches(cropped, kpts01, cropped2, kpts02, matches, imgMatches);
-//
-
         Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result1.png", cropped);
         Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result2.png", cropped2);
-
-
-
-
-
 
         List<KeyPoint> check = kpts1.toList();
         List<KeyPoint> check2 = kpts2.toList();
         List<Point> p1s = new ArrayList<>();
         List<Point> p2s = new ArrayList<>();
 
-
-
         double num_matches = better_matches.size();
         for(int i = 0; i < num_matches; i++){
+
             int idx1=better_matches.get(i).queryIdx;
             Imgproc.circle(outputImg, check.get(idx1).pt, 20, new Scalar(155, 0, 255), 5);
             p1s.add(check.get(idx1).pt);
@@ -986,135 +1030,104 @@ public class VideoProcessor {
             Imgproc.circle(img2, check2.get(idx2).pt, 20, new Scalar(155, 0, 255), 5);
             p2s.add(check2.get(idx2).pt);
 
-            //int idx2=better_matches.get(i).queryIdx;
-
         }
-      //  for(int i = 0; i < check.size(); i++){
 
-      //  }
-
-        Mat cameraP = getCameraParam(intrinsicFocal);
-
+        Mat cameraP =  Mat.zeros(3, 3, CV_64F);
+        cameraP.put(0,0, intrinsicFocal);
+        cameraP.put(0,2, width/2);
+        cameraP.put(1,1, intrinsicFocal);
+        cameraP.put(1,2, height/2);
+        cameraP.put(2,2, 1);
 
         Mat firstFramePoints = Converters.vector_Point_to_Mat(p1s);
         Mat lastFramePoints = Converters.vector_Point_to_Mat(p2s);
 
+        System.out.println("onw "+num_matches +" " + firstFramePoints.size());
+        System.out.println("onw2 "+ lastFramePoints.size());
 
-       // Mat pt1_norm = undistortPoints(firstFramePoints, cameraP, None);
 
-//        Mat E = Calib3d.findEssentialMat(firstFramePoints, lastFramePoints, cameraP);
-        Mat E =  Calib3d.findEssentialMat(firstFramePoints, lastFramePoints);
+
+        //Mat E =  Calib3d.findEssentialMat(firstFramePoints, lastFramePoints, );
+        Mat E =  Calib3d.findEssentialMat(firstFramePoints, lastFramePoints, cameraP, Calib3d.LMEDS, 0.999);
 
 
         Mat r = new Mat(3, 3, CV_64F);
         Mat t = new Mat(3, 1, CV_64F);
 
+        Mat opt1 = new Mat();
+        Mat opt2 = new Mat();
+
+
         Calib3d.recoverPose(E, firstFramePoints, lastFramePoints,  cameraP, r, t );
 
-//        Mat R = new Mat(3,3,CvType.CV_64F);
-//        System.out.println(" rold \t" +  r.dump());
-//        System.out.println(" told \t" +  t.dump());
-//
-//        Calib3d.Rodrigues(r, R);
-//        R = R.t();
-//        Core.multiply(R, Scalar.all(-1), R);
-//
-//        Mat tt = new Mat(3,1,CvType.CV_64F);
-
         System.out.println(" Eessen \t" +  E.dump());
-//
-//
-//        Core.gemm(R, t, 1, new Mat(), 0, tt, 0);
-//        Calib3d.Rodrigues(R, r);
-//
-//        System.out.println(" rnew \t" +  r.dump());
-//        System.out.println(" tnew \t" +  tt.dump());
-
-
-
-
-
-
-
-
-
-
-//        # Normalize for Esential Matrix calaculation
-//                pts_l_norm = cv2.undistortPoints(np.expand_dims(pts_l, axis=1), cameraMatrix=K_l, distCoeffs=None)
-//        pts_r_norm = cv2.undistortPoints(np.expand_dims(pts_r, axis=1), cameraMatrix=K_r, distCoeffs=None)
-//
-//        E, mask = cv2.findEssentialMat(pts_l_norm, pts_r_norm, focal=1.0, pp=(0., 0.), method=cv2.RANSAC, prob=0.999, threshold=3.0)
-//        points, R, t, mask = cv2.recoverPose(E, pts_l_norm, pts_r_norm)
-//
-//        M_r = np.hstack((R, t))
-//        M_l = np.hstack((np.eye(3, 3), np.zeros((3, 1))))
-//
-//        P_l = np.dot(K_l,  M_l)
-//        P_r = np.dot(K_r,  M_r)
-//        point_4d_hom = cv2.triangulatePoints(P_l, P_r, np.expand_dims(pts_l, axis=1), np.expand_dims(pts_r, axis=1))
-//        point_4d = point_4d_hom / np.tile(point_4d_hom[-1, :], (4, 1))
-//        point_3d = point_4d[:3, :].T
-
 
         saveFrame(0004, outputImg);
         saveFrame(0003, img1);
         saveFrame(0002, img2);
 
-
-
-
         System.out.println( " rotate " + r.dump());
         System.out.println( " translate " + t.dump());
 
 
-     List<Mat> add = new ArrayList<>();
-     add.add(r);
-     add.add(t);
-        Core.hconcat(add,r);
+        r=r.t();
+        Mat rNeg = new Mat(3, 3, CV_64F);
+        Core.multiply(r, new Scalar(-1), rNeg);
+        Core.gemm(rNeg, t, 1, new Mat(), 0, t, 0);
 
+        System.out.println( " rotateT " + r.dump());
+        System.out.println( " translateT " + t.dump());
+
+
+        List<Mat> add = new ArrayList<>();
+        add.add(r);
+        add.add(t);
+        Core.hconcat(add,r);
 
 
         System.out.println( "rotate and translate " + r.dump());
 
-        Mat p1 =  getPrjectionMatrix1(intrinsicFocal);
+
+        Mat identityMatric = Mat.eye(3,4,CV_64F);
+        Mat p1 = Mat.zeros(3, 4, CvType.CV_64F);
+
+        Core.gemm(cameraP, identityMatric, 1, new Mat(), 0, p1, 0);
+
         Mat p2 = new Mat();
 
 
-        Core.gemm(getCameraParam(intrinsicFocal), r, 1, new Mat(), 0, p2, 0);
+        System.out.println( "p1 " + p1.dump());
+
+        Core.gemm(cameraP, r, 1, new Mat(), 0, p2, 0);
+        System.out.println( "p2 " + p2.dump());
+
+
+        Point firstIn = first2.get(0);
+        Point secondIn = first2.get(1);
+
+        Point firstOut = last2.get(0);
+        Point secondOut = last2.get(1);
 
         Mat input1 = new Mat(2, 2, CV_64F);
 
+        input1.put(0,0, firstIn.x);
+        input1.put(1,0, firstIn.y);
 
-        input1.put(0,0, firstPoint_.x);
-        input1.put(1,0, firstPoint_.y);
-
-        input1.put(0,1,secondPoint_.x);
-        input1.put(1,1,secondPoint_.y);
+        input1.put(0,1,secondIn.x);
+        input1.put(1,1,secondIn.y);
 
         Mat input2 = new Mat(2, 2, CV_64F);
 
-        input2.put(0,0, firstOutPoint_.x);
-        input2.put(1,0, firstOutPoint_.y);
+        input2.put(0,0, firstOut.x);
+        input2.put(1,0, firstOut.y);
 
-        input2.put(0,1,secondOutPoint_.x);
-        input2.put(1,1,secondOutPoint_.y);
-
-//        input2.put(0,0, firstOutPoint_.x, secondOutPoint_.x);
-//        input2.put(1,0, firstOutPoint_.y, secondOutPoint_.y);
-
+        input2.put(0,1,secondOut.x);
+        input2.put(1,1,secondOut.y);
 
         Mat output = new Mat(4, 2, CV_64F);
-
         Calib3d.triangulatePoints(p1, p2, input1, input2, output);
 
-//        Mat pot = new Mat();
-//        Calib3d.convertPointsFromHomogeneous(output, pot);
         System.out.println( "4d " + output.dump());
-//        System.out.println( "3d " + pot.dump());
-
-
-
-
 
         double x1 = output.get(0, 0)[0]/output.get(3, 0)[0];
         double x2 = output.get(0, 1)[0]/output.get(3, 1)[0];
@@ -1136,8 +1149,7 @@ public class VideoProcessor {
 
         double ans  = Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1 - y2, 2) + Math.pow(z1-z2,2))*distanceM;
 
-        Log.d("ans ", String.valueOf(ans));
-
+        Log.d("ans ORB", String.valueOf(ans));
 
         Log.d("dist ", String.valueOf(distanceM));
         Log.d("focal ", String.valueOf(intrinsicFocal));
@@ -1145,24 +1157,8 @@ public class VideoProcessor {
         return ans;
     }
 
-    private double checkBlur(Mat img1) {
-        int threshold = 110;
-        Mat test = new Mat();
-        Imgproc.Laplacian(img1, test, 3);
-        MatOfDouble median = new MatOfDouble();
-        MatOfDouble std= new MatOfDouble();
-        Core.meanStdDev(test, median , std);
-
-        double score = Math.pow(std.get(0,0)[0],2);
-
-//        if(score > threshold){
-//            return true;
-//        }
-        return score;
-    }
 
     public void goodPoints(Mat inputFrame, MatOfPoint corners, Point point, MatOfPoint2f initPts) {
-
         Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_8UC1, Scalar.all(0));
         Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255), -1, 8, 0);
         Imgproc.goodFeaturesToTrack(inputFrame, corners, 100, 0.1, 10.0, mask, 7, true, 0.04);
@@ -1172,8 +1168,6 @@ public class VideoProcessor {
         saveFrame(next, cropped);
         initPts.fromList(corners.toList());
         next++;
-
-
     }
 
 

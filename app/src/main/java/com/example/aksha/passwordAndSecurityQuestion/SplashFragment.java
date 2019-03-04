@@ -20,6 +20,7 @@ public class SplashFragment extends Fragment {
     NavController navController;
     String password, secure;
     private String answer;
+    private String optical;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -37,6 +38,14 @@ public class SplashFragment extends Fragment {
         password = settings.getString("password", "");
         secure = settings.getString("secure", "");
         answer = settings.getString("answer", "");
+        optical = settings.getString("optical","");
+
+        if(optical.length() == 0){
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("optical", "no");
+            editor.apply();
+        }
+
 
         Handler handler = new Handler();
 
