@@ -139,10 +139,10 @@ public class VideoProcessor {
         feature_params.put("blockSize", 7.0);
 
         // params for lucas kanade optical flow
-        tc_.epsilon = 0.03;
-        tc_.maxCount = 10;
-        winSize_ = new Size(15, 15);
-        maxLevel_ = 2;
+//        tc_.epsilon = 0.03;
+//        tc_.maxCount = 10;
+        winSize_ = new Size(20, 20);
+        maxLevel_ = 3;
 
 
     }
@@ -159,7 +159,7 @@ public class VideoProcessor {
 
             prevImg = frames_.get(i);
             nextImg = frames_.get(i+1);
-            Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_, new TermCriteria(EPS + COUNT, 10, 0.03));
+            Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_, new TermCriteria(EPS + COUNT, 30, 0.01) );
             
             List<Point> nextList = new ArrayList<>(nextPts.toList());
             List<Point> goodNewList = new ArrayList<>();
@@ -219,200 +219,12 @@ public class VideoProcessor {
 
 
 
+    public Mat rbgToGray (Mat rgb) {
 
-    public void grabFrames(boolean first) {
-        frameGrabber(50000, frames_, first);
-    }
+        Mat bw = new Mat(rgb.height(), rgb.width(), CvType.CV_8UC4);
+        Imgproc.cvtColor(rgb, bw, Imgproc.COLOR_RGB2GRAY);
 
-    public void frameGrabber(long step, ArrayList<Mat> frames, boolean first) {
-
-        // grab the first frame info to construct Mat
-       // mm.grabFrame()
-        Bitmap firstFrame = mmr_.getFrameAtTime(0);
-        int width = firstFrame.getWidth();
-        int height = firstFrame.getHeight();
-
-        String videoLength = mmr_.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION);
-
-        long totalLength = Integer.valueOf(videoLength) * 1000;
-
-        //long videoLengthUs = videoFile.length(); // TODO need to test the unit
-        numOfFrame_ = 0;
-
-        Log.d("HERE video : ", String.valueOf(totalLength));
-
-        // loop over to grab frame every timeLapseUs
-
-        if (first == true) {
-            Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
-            grabFrameAsMat(0, newFrame);
-            firstFrame_ = newFrame;
-            saveFrame(0, newFrame);
-            return;
-        }
-
-        for (long tl=0; tl<(totalLength - 15000); tl=tl+step) {
-            Mat newFrame = new Mat(height, width, CvType.CV_8UC1);
-            grabFrameAsMat(tl, newFrame);
-
-            frames.add(newFrame);
-            numOfFrame_++;
-        }
-
-        firstFrame_ = frames.get(0);
-
-        firstFrameNew = new Mat(height, width, CvType.CV_8UC1);
-        grabFrameAsMat(0, firstFrameNew);
-        lastFrame_ = frames.get(frames.size()-1);
-        Log.d("HERE size : ", String.valueOf(frames.size()-1));
-        saveFrame(0, firstFrame_);
-
-//        Mat gray = new Mat(height, width, CvType.CV_32S);
-//        gray.put(0, 0, graycale);
-//        String path = Environment.getExternalStoragePublicDirectory(
-//                Environment.DIRECTORY_PICTURES) + "/MeasureUp/";
-//        Imgcodecs.imwrite(path + "/gray.jpg", gray);
-    }
-
-//    public void matching(){
-//
-//        Mat first = getFirstFrame();
-//        Mat last = getLastFrame();
-//
-//        double hessianThreshold = 400;
-//        int nOctaves = 4, nOctaveLayers = 3;
-//        boolean extended = false, upright = false;
-//        MatOfKeyPoint objectKeyPoints = new MatOfKeyPoint();
-//        FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.AKAZE);
-//        featureDetector.detect(first, objectKeyPoints);
-//        KeyPoint[] keypoints = objectKeyPoints.toArray();
-//
-//        MatOfKeyPoint objectDescriptors = new MatOfKeyPoint();
-//        DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.AKAZE);
-//        descriptorExtractor.compute(first, objectKeyPoints, objectDescriptors);
-//
-//
-//        Mat outputImage = new Mat(first.rows(), first.cols(), CV_LOAD_IMAGE_COLOR);
-//        Scalar newKeypointColor = new Scalar(255, 0, 0);
-//
-//        Features2d.drawKeypoints(first, objectKeyPoints, outputImage, newKeypointColor, 0);
-//
-//
-//        // Match object image with the scene image
-//        MatOfKeyPoint sceneKeyPoints = new MatOfKeyPoint();
-//        MatOfKeyPoint sceneDescriptors = new MatOfKeyPoint();
-//        System.out.println("Detecting key points in background image...");
-//        featureDetector.detect(last, sceneKeyPoints);
-//        System.out.println("Computing descriptors in background image...");
-//        descriptorExtractor.compute(last, sceneKeyPoints, sceneDescriptors);
-//
-//        Mat matchoutput = new Mat(last.rows() * 2, last.cols() * 2, CV_LOAD_IMAGE_COLOR);
-//        Scalar matchestColor = new Scalar(0, 255, 0);
-//
-//        List<MatOfDMatch> matches = new LinkedList<MatOfDMatch>();
-//        DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
-//        System.out.println("Matching object and scene images...");
-//        descriptorMatcher.knnMatch(objectDescriptors, sceneDescriptors, matches, 2);
-//
-//        System.out.println("Calculating good match list...");
-//        LinkedList<DMatch> goodMatchesList = new LinkedList<DMatch>();
-//
-//        float nndrRatio = 0.7f;
-//
-//        for (int i = 0; i < matches.size(); i++) {
-//            MatOfDMatch matofDMatch = matches.get(i);
-//            DMatch[] dmatcharray = matofDMatch.toArray();
-//            DMatch m1 = dmatcharray[0];
-//            DMatch m2 = dmatcharray[1];
-//
-//            if (m1.distance <= m2.distance * nndrRatio) {
-//                goodMatchesList.addLast(m1);
-//
-//            }
-//        }
-//
-//        if (goodMatchesList.size() >= 7) {
-//            System.out.println("Object Found!!!");
-//
-//            List<KeyPoint> objKeypointlist = objectKeyPoints.toList();
-//            List<KeyPoint> scnKeypointlist = sceneKeyPoints.toList();
-//
-//            LinkedList<Point> objectPoints = new LinkedList<>();
-//            LinkedList<Point> scenePoints = new LinkedList<>();
-//
-//            for (int i = 0; i < goodMatchesList.size(); i++) {
-//                objectPoints.addLast(objKeypointlist.get(goodMatchesList.get(i).queryIdx).pt);
-//                scenePoints.addLast(scnKeypointlist.get(goodMatchesList.get(i).trainIdx).pt);
-//            }
-//
-//            MatOfPoint2f objMatOfPoint2f = new MatOfPoint2f();
-//            objMatOfPoint2f.fromList(objectPoints);
-//            MatOfPoint2f scnMatOfPoint2f = new MatOfPoint2f();
-//            scnMatOfPoint2f.fromList(scenePoints);
-//
-//            Mat homography = Calib3d.findHomography(objMatOfPoint2f, scnMatOfPoint2f, Calib3d.RANSAC, 3);
-//
-//            Mat obj_corners = new Mat(4, 1, CvType.CV_32FC2);
-//            Mat scene_corners = new Mat(4, 1, CvType.CV_32FC2);
-//
-//            obj_corners.put(0, 0, new double[]{0, 0});
-//            obj_corners.put(1, 0, new double[]{first.cols(), 0});
-//            obj_corners.put(2, 0, new double[]{first.cols(), first.rows()});
-//            obj_corners.put(3, 0, new double[]{0, first.rows()});
-//
-//            System.out.println("Transforming object corners to scene corners...");
-//            Core.perspectiveTransform(obj_corners, scene_corners, homography);
-//
-//           // Mat img = Ip.imread(last, CV_LOAD_IMAGE_COLOR);
-//
-////            Core.line(img, new Point(scene_corners.get(0, 0)), new Point(scene_corners.get(1, 0)), new Scalar(0, 255, 0), 4);
-////            Core.line(img, new Point(scene_corners.get(1, 0)), new Point(scene_corners.get(2, 0)), new Scalar(0, 255, 0), 4);
-////            Core.line(img, new Point(scene_corners.get(2, 0)), new Point(scene_corners.get(3, 0)), new Scalar(0, 255, 0), 4);
-////            Core.line(img, new Point(scene_corners.get(3, 0)), new Point(scene_corners.get(0, 0)), new Scalar(0, 255, 0), 4);
-//
-//            System.out.println("Drawing matches image...");
-//            MatOfDMatch goodMatches = new MatOfDMatch();
-//            goodMatches.fromList(goodMatchesList);
-//
-//            Features2d.drawMatches(first, objectKeyPoints, last, sceneKeyPoints, goodMatches, matchoutput, matchestColor, newKeypointColor, new MatOfByte(), 2);
-//
-//            saveFrame(999999999, outputImage);
-//            saveFrame(99999999, matchoutput);
-//            //saveFrame(9999999, img);
-//
-//        } else {
-//            System.out.println("Object Not Found");
-//        }
-//
-//    }
-
-
-    public void grabFrameAsMat (long step, Mat frame) {
-
-        Bitmap currentFrame = mmr_.getFrameAtTime(step, OPTION_CLOSEST);
-        int width = currentFrame.getWidth();
-        int height = currentFrame.getHeight();
-        frameHeight_ = height;
-        frameWidth_ = width;
-//        int[] rawPixels = new int[width*height];
-//        currentFrame.getPixels(rawPixels, 0, width, 0, 0, width, height);
-//        int[] R = new int[rawPixels.length];
-//        int[] G = new int[rawPixels.length];
-//        int[] B = new int[rawPixels.length];
-//        int[] graycale = new int[rawPixels.length];
-//        for (int i=0; i<rawPixels.length; i++) {
-//            R[i] = (rawPixels[i] >> 16) & 0xff;
-//            G[i] = (rawPixels[i] >> 8) & 0xff;
-//            B[i] = rawPixels[i] & 0xff;
-//            graycale[i] = (R[i] + G[i] + B[i])/3;
-//        }
-//        Mat U32gray = new Mat(height, width, CvType.CV_32S);
-//        U32gray.put(0, 0, graycale);
-//        U32gray.convertTo(frame, CvType.CV_8UC1);
-        Mat rgb = new Mat(height, width, CvType.CV_8UC4);
-        Utils.bitmapToMat(currentFrame, rgb);
-        Imgproc.cvtColor(rgb, frame, Imgproc.COLOR_RGB2GRAY);
-
+        return bw;
     }
 
     int next = 998;
@@ -451,12 +263,11 @@ public class VideoProcessor {
         System.out.println("ans old "+ String.valueOf(Math.sqrt(Math.pow(world1[0]-world2[0],2) + Math.pow(world1[1] - world2[1], 2) + Math.pow(world1[2]-world2[2],2))));
 
 
+        Mat first = frames_.get(0);
+        Mat last = frames_.get(frames_.size()-1);
 
-
-        ansArr[0] = ans;
-        ansArr [1] = 0.0;
-
-
+        ansArr[1] = ans;
+        ansArr [0] = orbDescriptor(first, last, intrinsicFocal, distanceM, first2, last2, frameWidth_, frameHeight_);
 
         return ansArr;
     }
@@ -472,16 +283,10 @@ public class VideoProcessor {
 
         double anss = measureRealXYZNoOptical(intrinsicFocal, first2, last2,frameWidth, frameHeight);
 
-        Bitmap first = BitmapFactory.decodeFile(path);
-        Mat rgb1 = new Mat((int)frameHeight_, (int)frameWidth_, CvType.CV_8UC4);
-        Utils.bitmapToMat(first, rgb1);
-        Imgproc.cvtColor(rgb1, rgb1, Imgproc.COLOR_RGB2GRAY);
+        Mat first = frames_.get(0);
+        Mat last = frames_.get(frames_.size()-1);
 
-        Bitmap lastFrame = BitmapFactory.decodeFile(path.replaceAll("thumbnail", "last"));
-        Mat rgb = new Mat((int)frameHeight_, (int)frameWidth_, CvType.CV_8UC4);
-        Utils.bitmapToMat(lastFrame, rgb);
-        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_RGB2GRAY);
-        ansArr[0] = orbDescriptor(rgb1, rgb, intrinsicFocal, distanceM, first2, last2, frameWidth, frameHeight);
+        ansArr[0] = orbDescriptor(first, last, intrinsicFocal, distanceM, first2, last2, frameWidth, frameHeight);
 
         ansArr[1] = anss;
 
@@ -937,100 +742,100 @@ public class VideoProcessor {
     public double orbDescriptor(Mat img1, Mat img2, double intrinsicFocal, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2, double width, double height){
 
 
-        //firstFrame_, , , initPts1_
-        Mat mask = new Mat(img1.rows(), img1.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask, first2.get(0), 120, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.circle(mask, first2.get(1), 120, new Scalar( 255, 255, 255), -1, 8, 0);
-
-        //Imgproc.goodFeaturesToTrack(img1, firstCorners_, 10, 0.3, 7.0, mask, 7);
-        Mat cropped = new Mat();
-        img1.copyTo(cropped, mask);
-
-        Mat mask2 = new Mat(img2.rows(), img2.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask2, last2.get(0), 120, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.circle(mask2, last2.get(1), 120, new Scalar( 255, 255, 255), -1, 8, 0);
-
-        Mat cropped2 = new Mat();
-        img2.copyTo(cropped2, mask2);
-
-
-        ORB orb = ORB.create();
-        //orb.setMaxFeatures(100);
-        MatOfKeyPoint kpts1 = new MatOfKeyPoint(), kpts2 = new MatOfKeyPoint();
-        Mat desc1 = new Mat(), desc2 = new Mat();
-        orb.detectAndCompute(cropped, new Mat(), kpts1, desc1);
-        orb.detectAndCompute(cropped2, new Mat(), kpts2, desc2);
-
-        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
-
-        List<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
-        matcher.knnMatch(desc1, desc2, matches, 2);
-        // ratio test
-        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
-        for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
-            MatOfDMatch matOfDMatch = (MatOfDMatch) iterator.next();
-            if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 0.9) {
-                good_matches.add(matOfDMatch.toArray()[0]);
-            }
-        }
-
-        // get keypoint coordinates of good matches to find homography and remove outliers using ransac
-        List<Point> pts1 = new ArrayList<Point>();
-        List<Point> pts2 = new ArrayList<Point>();
-        for(int i = 0; i<good_matches.size(); i++){
-            pts1.add(kpts1.toList().get(good_matches.get(i).queryIdx).pt);
-            pts2.add(kpts2.toList().get(good_matches.get(i).trainIdx).pt);
-        }
-
-        // convertion of data types - there is maybe a more beautiful way
-        Mat outputMask = new Mat();
-        MatOfPoint2f pts1Mat = new MatOfPoint2f();
-        pts1Mat.fromList(pts1);
-        MatOfPoint2f pts2Mat = new MatOfPoint2f();
-        pts2Mat.fromList(pts2);
-
-        // Find homography - here just used to perform match filtering with RANSAC, but could be used to e.g. stitch images
-        // the smaller the allowed reprojection error (here 15), the more matches are filtered
-        Mat Homog = Calib3d.findHomography(pts1Mat, pts2Mat, Calib3d.RANSAC, 15, outputMask, 2000, 0.995);
-
-
-        // outputMask contains zeros and ones indicating which matches are filtered
-        LinkedList<DMatch> better_matches = new LinkedList<DMatch>();
-        for (int i = 0; i < good_matches.size(); i++) {
-            if (outputMask.get(i, 0)[0] != 0.0) {
-                better_matches.add(good_matches.get(i));
-            }
-        }
-
-        // DRAWING OUTPUT
-        Mat outputImg = new Mat();
-        // this will draw all matches, works fine
-        MatOfDMatch better_matches_mat = new MatOfDMatch();
-        better_matches_mat.fromList(better_matches);
-        Features2d.drawMatches(img1, kpts1, img2, kpts2, better_matches_mat, outputImg);
-
-       // better_matches_mat.toList().get(0)
-
-        Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result1.png", cropped);
-        Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result2.png", cropped2);
-
-        List<KeyPoint> check = kpts1.toList();
-        List<KeyPoint> check2 = kpts2.toList();
-        List<Point> p1s = new ArrayList<>();
-        List<Point> p2s = new ArrayList<>();
-
-        double num_matches = better_matches.size();
-        for(int i = 0; i < num_matches; i++){
-
-            int idx1=better_matches.get(i).queryIdx;
-            Imgproc.circle(outputImg, check.get(idx1).pt, 20, new Scalar(155, 0, 255), 5);
-            p1s.add(check.get(idx1).pt);
-
-            int idx2=better_matches.get(i).trainIdx;
-            Imgproc.circle(img2, check2.get(idx2).pt, 20, new Scalar(155, 0, 255), 5);
-            p2s.add(check2.get(idx2).pt);
-
-        }
+//        //firstFrame_, , , initPts1_
+//        Mat mask = new Mat(img1.rows(), img1.cols(), CvType.CV_8UC1, Scalar.all(0));
+//        Imgproc.circle(mask, first2.get(0), 120, new Scalar( 255, 255, 255), -1, 8, 0);
+//        Imgproc.circle(mask, first2.get(1), 120, new Scalar( 255, 255, 255), -1, 8, 0);
+//
+//        //Imgproc.goodFeaturesToTrack(img1, firstCorners_, 10, 0.3, 7.0, mask, 7);
+//        Mat cropped = new Mat();
+//        img1.copyTo(cropped, mask);
+//
+//        Mat mask2 = new Mat(img2.rows(), img2.cols(), CvType.CV_8UC1, Scalar.all(0));
+//        Imgproc.circle(mask2, last2.get(0), 120, new Scalar( 255, 255, 255), -1, 8, 0);
+//        Imgproc.circle(mask2, last2.get(1), 120, new Scalar( 255, 255, 255), -1, 8, 0);
+//
+//        Mat cropped2 = new Mat();
+//        img2.copyTo(cropped2, mask2);
+//
+//
+//        ORB orb = ORB.create();
+//        //orb.setMaxFeatures(100);
+//        MatOfKeyPoint kpts1 = new MatOfKeyPoint(), kpts2 = new MatOfKeyPoint();
+//        Mat desc1 = new Mat(), desc2 = new Mat();
+//        orb.detectAndCompute(cropped, new Mat(), kpts1, desc1);
+//        orb.detectAndCompute(cropped2, new Mat(), kpts2, desc2);
+//
+//        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+//
+//        List<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
+//        matcher.knnMatch(desc1, desc2, matches, 2);
+//        // ratio test
+//        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
+//        for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
+//            MatOfDMatch matOfDMatch = (MatOfDMatch) iterator.next();
+//            if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 0.9) {
+//                good_matches.add(matOfDMatch.toArray()[0]);
+//            }
+//        }
+//
+//        // get keypoint coordinates of good matches to find homography and remove outliers using ransac
+//        List<Point> pts1 = new ArrayList<Point>();
+//        List<Point> pts2 = new ArrayList<Point>();
+//        for(int i = 0; i<good_matches.size(); i++){
+//            pts1.add(kpts1.toList().get(good_matches.get(i).queryIdx).pt);
+//            pts2.add(kpts2.toList().get(good_matches.get(i).trainIdx).pt);
+//        }
+//
+//        // convertion of data types - there is maybe a more beautiful way
+//        Mat outputMask = new Mat();
+//        MatOfPoint2f pts1Mat = new MatOfPoint2f();
+//        pts1Mat.fromList(pts1);
+//        MatOfPoint2f pts2Mat = new MatOfPoint2f();
+//        pts2Mat.fromList(pts2);
+//
+//        // Find homography - here just used to perform match filtering with RANSAC, but could be used to e.g. stitch images
+//        // the smaller the allowed reprojection error (here 15), the more matches are filtered
+//        Mat Homog = Calib3d.findHomography(pts1Mat, pts2Mat, Calib3d.RANSAC, 15, outputMask, 2000, 0.995);
+//
+//
+//        // outputMask contains zeros and ones indicating which matches are filtered
+//        LinkedList<DMatch> better_matches = new LinkedList<DMatch>();
+//        for (int i = 0; i < good_matches.size(); i++) {
+//            if (outputMask.get(i, 0)[0] != 0.0) {
+//                better_matches.add(good_matches.get(i));
+//            }
+//        }
+//
+//        // DRAWING OUTPUT
+//        Mat outputImg = new Mat();
+//        // this will draw all matches, works fine
+//        MatOfDMatch better_matches_mat = new MatOfDMatch();
+//        better_matches_mat.fromList(better_matches);
+//        Features2d.drawMatches(img1, kpts1, img2, kpts2, better_matches_mat, outputImg);
+//
+//       // better_matches_mat.toList().get(0)
+//
+//        Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result1.png", cropped);
+//        Imgcodecs.imwrite(videoFile_.getParent()+"/akaze_result2.png", cropped2);
+//
+//        List<KeyPoint> check = kpts1.toList();
+//        List<KeyPoint> check2 = kpts2.toList();
+//        List<Point> p1s = new ArrayList<>();
+//        List<Point> p2s = new ArrayList<>();
+//
+//        double num_matches = better_matches.size();
+//        for(int i = 0; i < num_matches; i++){
+//
+//            int idx1=better_matches.get(i).queryIdx;
+//            Imgproc.circle(outputImg, check.get(idx1).pt, 20, new Scalar(155, 0, 255), 5);
+//            p1s.add(check.get(idx1).pt);
+//
+//            int idx2=better_matches.get(i).trainIdx;
+//            Imgproc.circle(img2, check2.get(idx2).pt, 20, new Scalar(155, 0, 255), 5);
+//            p2s.add(check2.get(idx2).pt);
+//
+//        }
 
         Mat cameraP =  Mat.zeros(3, 3, CV_64F);
         cameraP.put(0,0, intrinsicFocal);
@@ -1039,17 +844,46 @@ public class VideoProcessor {
         cameraP.put(1,2, height/2);
         cameraP.put(2,2, 1);
 
-        Mat firstFramePoints = Converters.vector_Point_to_Mat(p1s);
-        Mat lastFramePoints = Converters.vector_Point_to_Mat(p2s);
-
-        System.out.println("onw "+num_matches +" " + firstFramePoints.size());
-        System.out.println("onw2 "+ lastFramePoints.size());
+//        Mat firstFramePoints = Converters.vector_Point_to_Mat(p1s);
+//        Mat lastFramePoints = Converters.vector_Point_to_Mat(p2s);
+//
+//        System.out.println("onw "+num_matches +" " + firstFramePoints.size());
+//        System.out.println("onw2 "+ lastFramePoints.size());
 
 
 
         //Mat E =  Calib3d.findEssentialMat(firstFramePoints, lastFramePoints, );
-        Mat E =  Calib3d.findEssentialMat(firstFramePoints, lastFramePoints, cameraP, Calib3d.LMEDS, 0.999);
+        Point f1 = new Point(first2.get(0).x+4, first2.get(0).y+4);
+        Point f2 = new Point(first2.get(1).x+4, first2.get(1).y+4);
+        Point f3 = new Point(first2.get(0).x-4, first2.get(0).y-4);
+        Point f4  = new Point(first2.get(1).x-4, first2.get(1).y-4);
 
+        first2.add(f1);
+        first2.add(f2);
+        first2.add(f3);
+        first2.add(f4);
+
+        Point l1 = new Point(last2.get(0).x+4, last2.get(0).y+4);
+        Point l2 = new Point(last2.get(1).x+4, last2.get(1).y+4);
+        Point l3 = new Point(last2.get(0).x-4, last2.get(0).y-4);
+        Point l4  = new Point(last2.get(1).x-4, last2.get(1).y-4);
+
+        last2.add(l1);
+        last2.add(l2);
+        last2.add(l3);
+        last2.add(l4);
+
+        Mat first = Converters.vector_Point_to_Mat(first2);
+        Mat last = Converters.vector_Point_to_Mat(last2);
+
+
+
+       // Mat E =  Calib3d.findEssentialMat(firstFramePoints, lastFramePoints, cameraP, Calib3d.LMEDS, 0.999);
+
+        Mat E =  Calib3d.findEssentialMat(first, last, cameraP, Calib3d.RANSAC, 0.999, 1);
+
+
+      //  Mat v1 = cameraP.inv()*
 
         Mat r = new Mat(3, 3, CV_64F);
         Mat t = new Mat(3, 1, CV_64F);
@@ -1058,11 +892,13 @@ public class VideoProcessor {
         Mat opt2 = new Mat();
 
 
-        Calib3d.recoverPose(E, firstFramePoints, lastFramePoints,  cameraP, r, t );
+        Calib3d.recoverPose(E, first, last,  cameraP, r, t );
 
         System.out.println(" Eessen \t" +  E.dump());
+        //System.out.println(" Eessen Test \t" +  ET.dump());
 
-        saveFrame(0004, outputImg);
+
+        //saveFrame(0004, outputImg);
         saveFrame(0003, img1);
         saveFrame(0002, img2);
 
@@ -1161,7 +997,7 @@ public class VideoProcessor {
     public void goodPoints(Mat inputFrame, MatOfPoint corners, Point point, MatOfPoint2f initPts) {
         Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_8UC1, Scalar.all(0));
         Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.goodFeaturesToTrack(inputFrame, corners, 100, 0.1, 10.0, mask, 7, true, 0.04);
+        Imgproc.goodFeaturesToTrack(inputFrame, corners, 100, 0.5, 7, mask, 7, true, 0.04);
        //Imgproc.goodFeaturesToTrack();
         Mat cropped = new Mat();
         inputFrame.copyTo(cropped, mask);
@@ -1170,6 +1006,30 @@ public class VideoProcessor {
         next++;
     }
 
+    public void initializeFrames(List<Mat> listOfMat){
+        firstFrame_ = rbgToGray(listOfMat.get(3));
+        saveFrame(0, firstFrame_);
+        frames_.add(firstFrame_);
+
+        for(int i = 4; i < listOfMat.size(); i++){
+            frames_.add(rbgToGray(listOfMat.get(i)));
+        }
+
+        numOfFrame_ = frames_.size();
+
+        firstFrameNew =rbgToGray(listOfMat.get(2));
+
+        lastFrame_ = frames_.get(frames_.size()-1);
+
+        System.out.println("Counter " + frames_.size());
+        saveFrame(8, frames_.get(0));
+        saveFrame(9, frames_.get(1));
+
+        frameHeight_ = firstFrame_.height();
+        frameWidth_ = firstFrame_.width();
+
+
+    }
 
 
 }

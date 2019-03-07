@@ -8,6 +8,17 @@
     android:background="@color/colorAccent"
     tools:context=".PointSelectionFragment">
 
+
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/main_relative_layout"
+        tools:context=".PointSelectionFragment" >
+
+    </RelativeLayout>
+
     <ImageView
         android:id="@+id/imageView4"
         android:layout_width="match_parent"

@@ -42,7 +42,7 @@ public class MediaPlayerDemo_Video extends AppCompatActivity {
 
         // videoView = new CustomVideoView(this, );
         videoView = new CustomVideoView(this,Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/video.mp4");
+                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/video.mp4", 1920, 1080);
         // Uri.parse("android.resource://com.example.samplevideoview/" +
         // R.raw.video));
         relativeLayout.addView(videoView, params);

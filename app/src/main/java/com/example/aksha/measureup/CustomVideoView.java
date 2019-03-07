@@ -5,12 +5,16 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
@@ -20,18 +24,34 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 import android.view.Surface;
+import android.widget.Toast;
+
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 
 public class CustomVideoView extends GLSurfaceView {
+    static {System.loadLibrary("opencv_java3");
 
+
+    }
     VideoRender mRenderer;
     private MediaPlayer mMediaPlayer = null;
     private File file = null;
     private String filePath = null;
     private Uri uri = null;
+    private int h, w;
+    private boolean start;
+    private List<Mat> listOfMat = new ArrayList<>();
 
-    public CustomVideoView(Context context, File file) {
+    public CustomVideoView(Context context, File file, int h, int w) {
         super(context);
+
+        this.h = h;
+        this.w = w;
 
         this.file = file;
 
@@ -39,22 +59,19 @@ public class CustomVideoView extends GLSurfaceView {
 
     }
 
-    public CustomVideoView(Context context, String filePath) {
+    public CustomVideoView(Context context, String filePath, int h, int w) {
         super(context);
 
+        this.h = h;
+        this.w = w;
         this.filePath = filePath;
 
         init();
 
     }
 
-    public CustomVideoView(Context context, Uri uri) {
-        super(context);
-
-        this.uri = uri;
-
-        init();
-
+    public List<Mat> getMats(){
+      return listOfMat;
     }
 
     private void init() {
@@ -89,10 +106,12 @@ public class CustomVideoView extends GLSurfaceView {
         super.onDetachedFromWindow();
 
         if (mMediaPlayer != null) {
+            start = false;
             mMediaPlayer.stop();
             mMediaPlayer.release();
         }
     }
+
 
     private class VideoRender implements GLSurfaceView.Renderer,
             SurfaceTexture.OnFrameAvailableListener {
@@ -144,6 +163,7 @@ public class CustomVideoView extends GLSurfaceView {
         private boolean updateSurface = false;
 
         private int GL_TEXTURE_EXTERNAL_OES = 0x8D65;
+        private boolean doneFrame = false;
 
         public VideoRender(Context context) {
             mTriangleVertices = ByteBuffer
@@ -162,21 +182,27 @@ public class CustomVideoView extends GLSurfaceView {
             Matrix.setIdentityM(mSTMatrix, 0);
         }
 
+        int i = 0;
         public void onDrawFrame(GL10 glUnused) {
 
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+            //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
 
             //backgroundRenderer.draw(frame);
 
-            synchronized (this) {
 
-                    mSurface.updateTexImage();
-                    mSurface.getTransformMatrix(mSTMatrix);
+            i++;
 
-            }
 
-            GLES20.glClearColor(255.0f, 255.0f, 255.0f, 1.0f);
+                mSurface.updateTexImage();
+                mSurface.getTransformMatrix(mSTMatrix);
+
+
+
+
+
+
+            // GLES20.glClearColor(255.0f, 255.0f, 255.0f, 1.0f);
 //            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT
 //                    | GLES20.GL_COLOR_BUFFER_BIT);
 
@@ -210,9 +236,34 @@ public class CustomVideoView extends GLSurfaceView {
 
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
             checkGlError("glDrawArrays");
+
+
+            if(!doneFrame && start) {
+                Bitmap mBitmap = savePixels(0, 0, w, h);
+                Mat newframe = getMat(mBitmap);
+                Log.d("saving ", String.valueOf(i));
+                listOfMat.add(newframe);
+//                if(i==2)
+//
+//                PointSelectionFragment.showToastMethod(getContext(), "Processing Frames.... ");
+
+//                saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
+//                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/", i);
+            }
+
+//            if(doneFrame){
+//               for(int x =0; x < lsitOfMat.size(); x++){
+//                  saveThumbnail(lsitOfMat.get(x), Environment.getExternalStoragePublicDirectory(
+//                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/", x);
+//               }
+//               doneFrame = false;
+//                start = false;
+//            }
+
             GLES20.glFinish();
 
         }
+
 
         public void onSurfaceChanged(GL10 glUnused, int width, int height) {
 
@@ -341,11 +392,27 @@ public class CustomVideoView extends GLSurfaceView {
                 updateSurface = false;
             }
 
+
+            mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                    System.out.println("POP ");
+                    PointSelectionFragment.showToastMethod(getContext(), "Select Points ");
+                    doneFrame = true;
+                }
+            });
+
+
             mMediaPlayer.start();
+            start = true;
+
+
 
         }
 
+
         synchronized public void onFrameAvailable(SurfaceTexture surface) {
+
+
 
             updateSurface = true;
         }
@@ -406,6 +473,57 @@ public class CustomVideoView extends GLSurfaceView {
                 throw new RuntimeException(op + ": glError " + error);
             }
         }
+
+    }
+
+
+    public static String saveThumbnail(Mat frame, String parent, int name) {
+        String path = parent + "/" + name +".jpg";
+        Log.d("FILE NAME ", path);
+        Imgcodecs.imwrite(path, frame);
+
+        return path;
+    }
+
+    private Mat getMat(Bitmap mBitmap) {
+
+        System.out.println(h + " lol ");
+        Mat rgb = new Mat(h, w, CvType.CV_8UC4);
+        Utils.bitmapToMat(mBitmap, rgb);
+        Imgproc.cvtColor(rgb, rgb, Imgproc.COLOR_BGR2RGB);
+
+        return rgb;
+    }
+
+    public static Bitmap savePixels(int x, int y, int w, int h)
+    {
+        int b[]=new int[w*h];
+        int bt[]=new int[w*h];
+        IntBuffer ib=IntBuffer.wrap(b);
+        ib.position(0);
+
+        GLES20.glReadPixels(x, y, w, h, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, ib);
+
+
+
+        /*  remember, that OpenGL bitmap is incompatible with
+        Android bitmap and so, some correction need.
+        */
+
+        for(int i=0; i<h; i++)
+        {
+            for(int j=0; j<w; j++)
+            {
+                int pix=b[i*w+j];
+                int pb=(pix>>16)&0xff;
+                int pr=(pix<<16)&0x00ff0000;
+                int pix1=(pix&0xff00ff00) | pr | pb;
+                bt[(h-i-1)*w+j]=pix1;
+            }
+        }
+
+        Bitmap sb = Bitmap.createBitmap(bt, w, h,  Bitmap.Config.ARGB_8888);
+        return sb;
 
     }
 

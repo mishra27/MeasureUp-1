@@ -26,6 +26,12 @@
             android:exported="true"
             android:screenOrientation="locked">
 
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
         </activity>
 
         <meta-data
@@ -33,11 +39,7 @@
             android:value="required" />
 
         <activity android:name=".ObjectDetailsDialog" />
-        <activity android:name=".MediaPlayerDemo_Video"><intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter></activity>
+        <activity android:name=".MediaPlayerDemo_Video"></activity>
     </application>
 
 </manifest>
