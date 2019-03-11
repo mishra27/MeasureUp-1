@@ -1,7 +1,6 @@
 package com.example.aksha.measureup;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 //import org.bytedeco.javacv.FrameGrabber;
@@ -10,11 +9,8 @@ import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.CvType;
-import org.opencv.core.DMatch;
-import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
-import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
@@ -23,9 +19,6 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.TermCriteria;
-import org.opencv.features2d.DescriptorMatcher;
-import org.opencv.features2d.Features2d;
-import org.opencv.features2d.ORB;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
@@ -35,16 +28,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
-import static android.media.MediaMetadataRetriever.OPTION_CLOSEST;
-import static org.opencv.calib3d.Calib3d.correctMatches;
 import static org.opencv.core.CvType.CV_64F;
 import static org.opencv.core.TermCriteria.COUNT;
 import static org.opencv.core.TermCriteria.EPS;
@@ -141,83 +130,171 @@ public class VideoProcessor {
         // params for lucas kanade optical flow
 //        tc_.epsilon = 0.03;
 //        tc_.maxCount = 10;
-        winSize_ = new Size(20, 20);
-        maxLevel_ = 3;
+        winSize_ = new Size(30, 30);
+        maxLevel_ = 2;
 
 
     }
 
-    private Point findNextGoodPoint(MatOfPoint2f prevPts, MatOfPoint2f nextPts, MatOfByte status_) {
+    private List<Point> findNextGoodPoint(MatOfPoint2f prevPts, MatOfPoint2f nextPts, MatOfByte status_) {
+
+        Mat img = lastFrame_.clone();
 
 
         Mat prevImg = new Mat();
         Mat nextImg = new Mat();
         double aveX;
         double aveY;
-        for (int i = 0; i<numOfFrame_-1; i++) {
+
+        synchronized (this) {
+            for (int i = 0; i < numOfFrame_ - 1; i++) {
 
 
-            prevImg = frames_.get(i);
-            nextImg = frames_.get(i+1);
-            Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_, new TermCriteria(EPS + COUNT, 30, 0.01) );
-            
-            List<Point> nextList = new ArrayList<>(nextPts.toList());
-            List<Point> goodNewList = new ArrayList<>();
-            List<Byte> statusList = new ArrayList<>(status_.toList());
+                prevImg = frames_.get(i);
+                nextImg = frames_.get(i + 1);
+                Video.calcOpticalFlowPyrLK(prevImg, nextImg, prevPts, nextPts, status_, err_, winSize_, maxLevel_, new TermCriteria(EPS + COUNT, 10, 0.03));
 
-            // select good points
-            int numOfOutPoints = statusList.size();
-            MatOfPoint2f goodNew = new MatOfPoint2f();
-            for (int k=0; k<numOfOutPoints; k++) {
-                if (statusList.get(k) == 1) {
-                    goodNewList.add(nextList.get(k));
+                List<Point> nextList = new ArrayList<>(nextPts.toList());
+                List<Point> prevtList = new ArrayList<>(prevPts.toList());
+
+                List<Point> goodOldList = new ArrayList<>();
+
+                List<Point> goodNewList = new ArrayList<>();
+
+                List<Byte> statusList = new ArrayList<>(status_.toList());
+
+                // select good points
+                int numOfOutPoints = statusList.size();
+                MatOfPoint2f goodNew = new MatOfPoint2f();
+                for (int k = 0; k < numOfOutPoints; k++) {
+                    if (statusList.get(k) == 1) {
+                        goodNewList.add(nextList.get(k));
+                        goodOldList.add(prevtList.get(k));
+                    }
                 }
+
+
+                goodNew.fromList(goodNewList);
+                prevPts = goodNew;
+
+                for(int j = 0; j< goodOldList.size();j++)
+                    Imgproc.line(img,goodNewList.get(j),goodOldList.get(j), new Scalar(25,0,0), 8 );
+
             }
-            goodNew.fromList(goodNewList);
-            prevPts = goodNew;
-
         }
-
-        aveX = 0.0;
-        aveY = 0.0;
 
         List<Point> outPtsList = prevPts.toList();
-        for (int j = 0; j<outPtsList.size(); j++) {
-            aveX = outPtsList.get(j).x + aveX;
-            aveY = outPtsList.get(j).y + aveY;
-        }
-        aveX = aveX/outPtsList.size();
-        aveY = aveY/outPtsList.size();
 
-        Point p = new Point(aveX, aveY);
-
-        Mat mask = new Mat(nextImg.rows(), nextImg.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask, p, 50, new Scalar( 255, 255, 255), -1, 8, 0);
-        //Imgproc.goodFeaturesToTrack();
-        Mat cropped = new Mat();
-        nextImg.copyTo(cropped, mask);
-        saveFrame(next, cropped);
         next++;
+        saveFrame(next, img);
 
-        return p;
+
+
+
+        next++;
+//        aveX = 0.0;
+//        aveY = 0.0;
+//
+//
+//        for (int j = 0; j<outPtsList.size(); j++) {
+//            aveX = outPtsList.get(j).x + aveX;
+//            aveY = outPtsList.get(j).y + aveY;
+//        }
+//        aveX = aveX/outPtsList.size();
+//        aveY = aveY/outPtsList.size();
+//
+//        Point p = new Point(aveX, aveY);
+//
+//        Mat mask = new Mat(nextImg.rows(), nextImg.cols(), CvType.CV_8UC1, Scalar.all(0));
+//        Imgproc.circle(mask, p, 50, new Scalar( 255, 255, 255), -1, 8, 0);
+//        //Imgproc.goodFeaturesToTrack();
+//        Mat cropped = new Mat();
+//        nextImg.copyTo(cropped, mask);
+//        saveFrame(next, cropped);
+//        next++;
+
+        return outPtsList;
     }
 
 
     public void trackOpticalFlow() {
         goodPoints(firstFrame_, firstCorners_, firstPoint_, initPts1_);
-        goodPoints(firstFrame_, secondCorners_, secondPoint_, initPts2_);
-
         MatOfPoint2f prevPts1 = initPts1_;
         MatOfPoint2f nextPts1 = new MatOfPoint2f();
+        List<Point> in1 = initPts1_.toList();
+        List<Point>  out1 =  findNextGoodPoint(prevPts1, nextPts1, status1_);
 
+        goodPoints(firstFrame_, secondCorners_, secondPoint_, initPts2_);
         MatOfPoint2f prevPts2 = initPts2_;
         MatOfPoint2f nextPts2 = new MatOfPoint2f();
+        List<Point> in2 = initPts2_.toList();
+        List<Point>  out2 = findNextGoodPoint(prevPts2, nextPts2, status2_);
 
-        firstOutPoint_ =  findNextGoodPoint(prevPts1, nextPts1, status1_);
-        secondOutPoint_ = findNextGoodPoint(prevPts2, nextPts2, status2_);
+        double max1 = 0;
+        int maxIndex1 = 0;
+
+        for(int i = 0; i< in1.size(); i++){
+            double temp = calcDist(in1.get(i), out1.get(i));
+            if(temp > max1){
+                max1 = temp;
+                maxIndex1 = i;
+            }
+        }
+
+        double max2 = 0;
+        int maxIndex2 = 0;
+
+        for(int i = 0; i< in2.size(); i++){
+            double temp = calcDist(in2.get(i), out2.get(i));
+            if(temp > max2){
+                max2 = temp;
+                maxIndex2 = i;
+            }
+        }
+
+        if(max1>= max2){
+            double x = in1.get(maxIndex1).x - out1.get(maxIndex1).x;
+            double y = in1.get(maxIndex1).y - out1.get(maxIndex1).y;
+
+            firstOutPoint_.x = firstPoint_.x - x;
+            firstOutPoint_.y = firstPoint_.y - y;
+
+            secondOutPoint_.x = secondPoint_.x - x;
+            secondOutPoint_.y = secondPoint_.y - y;
+        }
+
+        else{
+            double x = in2.get(maxIndex2).x - out2.get(maxIndex2).x;
+            double y = in2.get(maxIndex2).y - out2.get(maxIndex2).y;
+
+            firstOutPoint_.x = firstPoint_.x - x;
+            firstOutPoint_.y = firstPoint_.y - y;
+
+            secondOutPoint_.x = secondPoint_.x - x;
+            secondOutPoint_.y = secondPoint_.y - y;
+        }
+
+        Mat temp = lastFrame_.clone();
+
+        Imgproc.circle(temp, firstOutPoint_, 15, new Scalar(255, 0,0), 3);
+        Imgproc.circle(temp, secondOutPoint_, 15, new Scalar(255, 0,0), 3);
+
+        saveFrame(0, temp);
+
+
     }
 
 
+    public  double calcDist(Point a, Point b){
+        double ans = 0;
+        double x1 = a.x;
+        double x2 = b.x;
+        double y1 = a.y;
+        double y2 = b.y;
+
+        ans = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(x1-x2, 2));
+        return ans;
+    }
 
     public Mat rbgToGray (Mat rgb) {
 
@@ -228,18 +305,19 @@ public class VideoProcessor {
     }
 
     int next = 998;
-    public void findInitFeatures(Mat inputFrame, MatOfPoint corners, Point point, MatOfPoint2f initPts) {
-        double x = point.x;
-        double y = point.y;
-        next++;
-        Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_8UC1, Scalar.all(0));
-        Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.goodFeaturesToTrack(inputFrame, corners, 10, 0.3, 7.0, mask, 7);
-        Mat cropped = new Mat();
-        inputFrame.copyTo(cropped, mask);
-        saveFrame(next, cropped);
-        initPts.fromList(corners.toList());
-    }
+
+//    public void findInitFeatures(Mat inputFrame, MatOfPoint corners, Point point, MatOfPoint2f initPts) {
+//        double x = point.x;
+//        double y = point.y;
+//        next++;
+//        Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_8UC1, Scalar.all(0));
+//        Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255), -1, 8, 0);
+//        Imgproc.goodFeaturesToTrack(inputFrame, corners, 10, 0.3, 7.0, mask, 7);
+//        Mat cropped = new Mat();
+//        inputFrame.copyTo(cropped, mask);
+//        saveFrame(next, cropped);
+//        initPts.fromList(corners.toList());
+//    }
 
     public  double[] measurement (double opticalFocalM, double ccdWidthM, double distanceM, ArrayList<Point> first2, ArrayList<Point> last2, String path) {
         double[] ansArr = new double[2];
@@ -898,10 +976,6 @@ public class VideoProcessor {
         //System.out.println(" Eessen Test \t" +  ET.dump());
 
 
-        //saveFrame(0004, outputImg);
-        saveFrame(0003, img1);
-        saveFrame(0002, img2);
-
         System.out.println( " rotate " + r.dump());
         System.out.println( " translate " + t.dump());
 
@@ -995,23 +1069,33 @@ public class VideoProcessor {
 
 
     public void goodPoints(Mat inputFrame, MatOfPoint corners, Point point, MatOfPoint2f initPts) {
+       next++;
         Mat mask = new Mat(inputFrame.rows(), inputFrame.cols(), CvType.CV_8UC1, Scalar.all(0));
         Imgproc.circle(mask, point, 50, new Scalar( 255, 255, 255), -1, 8, 0);
-        Imgproc.goodFeaturesToTrack(inputFrame, corners, 100, 0.5, 7, mask, 7, true, 0.04);
-       //Imgproc.goodFeaturesToTrack();
-        Mat cropped = new Mat();
-        inputFrame.copyTo(cropped, mask);
-        saveFrame(next, cropped);
+        Imgproc.goodFeaturesToTrack(inputFrame, corners, 30, 0.1, 7, mask, 7, true, 0.04);
+
+
+
+        next++;
+
+        Mat temp = inputFrame.clone();
+        List<Point> pp = corners.toList();
+        for(int i = 0; i< pp.size(); i++){
+            Imgproc.circle(temp, pp.get(i), 15, new Scalar(255, 0,0), 3);
+        }
+
         initPts.fromList(corners.toList());
         next++;
     }
 
     public void initializeFrames(List<Mat> listOfMat){
         firstFrame_ = rbgToGray(listOfMat.get(3));
-        saveFrame(0, firstFrame_);
         frames_.add(firstFrame_);
 
         for(int i = 4; i < listOfMat.size(); i++){
+
+            if(i == listOfMat.size()-1)
+                lastFrame_ = listOfMat.get(i);
             frames_.add(rbgToGray(listOfMat.get(i)));
         }
 
@@ -1019,11 +1103,9 @@ public class VideoProcessor {
 
         firstFrameNew =rbgToGray(listOfMat.get(2));
 
-        lastFrame_ = frames_.get(frames_.size()-1);
+        //lastFrame_ = frames_.get(frames_.size()-1);
 
         System.out.println("Counter " + frames_.size());
-        saveFrame(8, frames_.get(0));
-        saveFrame(9, frames_.get(1));
 
         frameHeight_ = firstFrame_.height();
         frameWidth_ = firstFrame_.width();

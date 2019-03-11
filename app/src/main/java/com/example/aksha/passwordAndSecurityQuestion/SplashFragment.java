@@ -42,7 +42,7 @@ public class SplashFragment extends Fragment {
 
         if(optical.length() == 0){
             SharedPreferences.Editor editor = settings.edit();
-            editor.putString("optical", "no");
+            editor.putString("optical", "yes");
             editor.apply();
         }
 

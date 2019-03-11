@@ -697,10 +697,10 @@ public class RecordScreenFragment extends Fragment implements GLSurfaceView.Rend
                     e.printStackTrace();
                 }
 
-                Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
-                Mat newframe = getMat(mBitmap);
-                saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, "last");
+//                Bitmap mBitmap = savePixels(0, 0, surfaceView.getWidth(), surfaceView.getHeight(), gl);
+//                Mat newframe = getMat(mBitmap);
+//                saveThumbnail(newframe, Environment.getExternalStoragePublicDirectory(
+//                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/" + currentFileName, "last");
 
                 //last = false;
 
