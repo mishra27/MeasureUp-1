@@ -46,6 +46,13 @@ public class SettingsFragment extends Fragment {
         secure = settings.getString("secure", "");
         question = settings.getString("question", "");
 
+        if(settings.getString("optical", "").equals("yes")){
+            optical.setChecked(true);
+        }
+
+        else
+            optical.setChecked(false);
+
 
         optical.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -2,11 +2,14 @@ package com.example.aksha.measureup;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import java.io.File;
 
 import android.os.Environment;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -17,6 +20,9 @@ public class MediaPlayerDemo_Video extends AppCompatActivity {
 
     private CustomVideoView videoView = null;
     private RelativeLayout relativeLayout = null;
+    private int width;
+    private int height;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,25 +32,24 @@ public class MediaPlayerDemo_Video extends AppCompatActivity {
         setContentView(R.layout.activity_media_player_demo__video);
 
         relativeLayout = (RelativeLayout) findViewById(R.id.main_relative_layout);
+       // getScreenResolution(this);
+
+        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
+        width = metrics.widthPixels;
+        height = metrics.heightPixels;
+        System.out.println(" HEIGHT "+ height + " X "+ width);
+
+
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-                1080, 1920);
-//        params.leftMargin = 50;
-//        params.topMargin = 50;
+                width, height);
 
-//        videoView = new CustomVideoView(this, new File(Environment.getExternalStoragePublicDirectory(
-//                Environment.DIRECTORY_PICTURES) + "/.MeasureUp/video.mp4"));
-//
-//        if(videoView == null)
-//            System.out.println("NULL ");
-
-
-
-        // videoView = new CustomVideoView(this, );
         videoView = new CustomVideoView(this,Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/video.mp4", 1920, 1080);
-        // Uri.parse("android.resource://com.example.samplevideoview/" +
-        // R.raw.video));
+                        Environment.DIRECTORY_PICTURES) + "/.MeasureUp/video.mp4", height, width);
+
         relativeLayout.addView(videoView, params);
 
     }
@@ -62,4 +67,5 @@ public class MediaPlayerDemo_Video extends AppCompatActivity {
                             View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         }
     }
+
 }
