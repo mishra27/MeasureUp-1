@@ -266,8 +266,6 @@ public class VideoProcessor {
 
 
 
-
-
         for(int i = 0; i< in1.size(); i++){
             double temp = calcDist(in1.get(i), out1.get(i));
             if(temp > max1){
